@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/holo_red_dark">
+
+    <ImageView
+        android:id="@+id/id_imageViewProfile"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:background="@android:color/white"
+        android:src="@drawable/ic_person_black_24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/id_textViewName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif"
+        android:text="Name"
+        android:textAllCaps="false"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/id_imageViewProfile"
+        app:layout_constraintStart_toStartOf="@+id/id_imageViewProfile"
+        app:layout_constraintTop_toBottomOf="@+id/id_imageViewProfile" />
+
+    <ImageView
+        android:id="@+id/id_imageViewSettings"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="32dp"
+        android:src="@drawable/ic_settings_black_24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/id_imageViewProfile" />
+
+    <TextView
+        android:id="@+id/id_textViewFriendCount"
+        android:layout_width="131dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="FriendCount"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/id_textViewBio"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewBio" />
+
+    <TextView
+        android:id="@+id/id_textViewTrapCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="TrapCount"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/id_textViewFriendCount"
+        app:layout_constraintTop_toTopOf="@+id/id_textViewFriendCount" />
+
+    <TextView
+        android:id="@+id/id_textViewUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Username"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/id_textViewName"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewName" />
+
+    <TextView
+        android:id="@+id/id_textViewBio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Bio"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/id_textViewUsername"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewUsername" />
+
+</android.support.constraint.ConstraintLayout>
