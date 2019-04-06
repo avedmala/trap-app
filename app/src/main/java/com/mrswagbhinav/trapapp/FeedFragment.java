@@ -10,9 +10,14 @@ import android.view.ViewGroup;
 
 public class FeedFragment extends Fragment {
 
-    @Nullable
+    public FeedFragment(){
+        // Required empty public constructor
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_feed, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_feed, null);
+
+        return fragmentView;
     }
 }

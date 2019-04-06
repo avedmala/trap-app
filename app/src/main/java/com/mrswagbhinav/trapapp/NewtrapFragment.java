@@ -10,9 +10,14 @@ import android.view.ViewGroup;
 
 public class NewtrapFragment extends Fragment {
 
-    @Nullable
+    public NewtrapFragment(){
+        // Required empty public constructor
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_newtrap, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_newtrap, null);
+
+        return fragmentView;
     }
 }

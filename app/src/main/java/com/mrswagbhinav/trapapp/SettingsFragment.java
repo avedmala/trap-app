@@ -10,9 +10,14 @@ import android.view.ViewGroup;
 
 public class SettingsFragment extends Fragment {
 
-    @Nullable
+    public SettingsFragment(){
+        // Required empty public constructor
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_settings, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_settings, null);
+
+        return fragmentView;
     }
 }
