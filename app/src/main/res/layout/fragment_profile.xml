@@ -28,7 +28,6 @@
         android:textAllCaps="false"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="@+id/id_imageViewProfile"
         app:layout_constraintStart_toStartOf="@+id/id_imageViewProfile"
         app:layout_constraintTop_toBottomOf="@+id/id_imageViewProfile" />
 

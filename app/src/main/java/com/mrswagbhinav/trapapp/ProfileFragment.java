@@ -4,12 +4,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 
 
 public class ProfileFragment extends Fragment {
@@ -27,11 +31,23 @@ public class ProfileFragment extends Fragment {
         TextView textViewFriendCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
         TextView textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
         TextView textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
+        ImageView imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
 
-        FirebaseUser user = ((MainActivity)getActivity()).user;
+        DocumentSnapshot document = ((MainActivity)getActivity()).document;
 
-        textViewName.setText(user.getDisplayName()+"");
+        textViewName.setText(document.get("name").toString());
+        textViewUsername.setText(document.getId());
 
+        imageViewSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.add(R.id.fragment_container, new SettingsFragment());
+                fragmentTransaction.hide(ProfileFragment.this);
+                fragmentTransaction.commit();
+            }
+        });
 
         return fragmentView;
     }
