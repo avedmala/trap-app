@@ -35,7 +35,7 @@ public class NewtrapFragment extends Fragment {
 
         EditText editTextDate = fragmentView.findViewById(R.id.id_editTextDate);
         EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
-        final EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
+        EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
@@ -44,13 +44,13 @@ public class NewtrapFragment extends Fragment {
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Map<String, Object> user = new HashMap<>();
-                user.put("host", currentUser.getDisplayName());
-                user.put("location", new GeoPoint(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude));
-                user.put("time", Timestamp.now());
+                Map<String, Object> trap = new HashMap<>();
+                trap.put("host", currentUser.getUid());
+                trap.put("location", new GeoPoint(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude));
+                trap.put("time", Timestamp.now());
 
                 db.collection("traps").document()
-                        .set(user)
+                        .set(trap)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {

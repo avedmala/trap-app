@@ -1,41 +1,60 @@
 package com.mrswagbhinav.trapapp;
 
-import java.util.Date;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.GeoPoint;
+
+import java.util.ArrayList;
 
 public class Trap {
 
-    private String name;
+    private String title;
     private String host;
-    private Double lat;
-    private Double lng;
-    private Date date;
+    //private ArrayList<String> commits;
+    private GeoPoint geoPoint;
+    private Timestamp timestamp;
 
-    public Trap (String name, String host, Double lat, Double lng, Date date) {
-        this.name = name;
+    public Trap (String title, String host, GeoPoint geoPoint, Timestamp timestamp) {
+        this.title = title;
         this.host = host;
-        this.lat = lat;
-        this.lng = lng;
-        this.date = date;
+        //this.commits = commits;
+        this.geoPoint = geoPoint;
+        this.timestamp = timestamp;
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String str) {
+        title = str;
     }
 
     public String getHost() {
         return host;
     }
 
-    public Double getLongitude() {
-        return lng;
+//    public ArrayList<String> getCommits() {
+//        return commits;
+//    }
+//
+//    public void addCommit(String user) {
+//        commits.add(user);
+//    }
+
+    public GeoPoint getGeoPoint() {
+        return geoPoint;
     }
 
-    public Double getLatitude() {
-        return lat;
+    public void setGeoPoint(GeoPoint gp) {
+        geoPoint = gp;
     }
 
-    public Date getDate() {
-        return date;
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp ts) {
+        timestamp = ts;
     }
 
 

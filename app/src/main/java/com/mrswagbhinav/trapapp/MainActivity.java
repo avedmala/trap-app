@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     double longitude;
     double latitude;
 
-    private static final String TAG = "GoogleActivity";
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     Intent intentHome;
 
     private static final String default_web_client_id = "501116635490-mkkhhio7c4bg3k5dr3vudoa8qr34ime4.apps.googleusercontent.com";
-    private static final String TAG = "GoogleActivity";
+    private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 9001;
 
     private FirebaseAuth mAuth;
