@@ -65,37 +65,42 @@ public class NewtrapFragment extends Fragment {
                 Map<String, Object> trap = new HashMap<>();
 
                 String input = editTextAddress.getText().toString();
-                input.replace(" ", "%20");
+                //input.replace(" ", "%20");
                 String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
 
-                trap.put("host", currentUser.getUid());
-                trap.put("title", editTextName.getText().toString());
-                //trap.put("location", new GeoPoint(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude));
-                trap.put("time", Timestamp.now());
                 try {
-                    trap.put("location_name", new getLocationName().execute(URL).get());
-                    trap.put("location_address", new getLocationAddress().execute(URL).get());
+                    if(new getLocationName().execute(URL).get() != null) {
+                        trap.put("host", currentUser.getUid());
+                        trap.put("title", editTextName.getText().toString());
+                        trap.put("time", Timestamp.now());
+                        trap.put("location_name", new getLocationName().execute(URL).get());
+                        trap.put("location_address", new getLocationAddress().execute(URL).get());
+
+
+                        db.collection("traps").document()
+                                .set(trap)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                                        Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w(TAG, "Error writing document", e);
+                                    }
+                                });
+                    }
+                    else {
+                        Toast.makeText(getActivity(), "Invalid Address", Toast.LENGTH_SHORT).show();
+                    }
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-                db.collection("traps").document()
-                        .set(trap)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d(TAG, "DocumentSnapshot successfully written!");
-                                Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w(TAG, "Error writing document", e);
-                            }
-                        });
             }
         });
 
