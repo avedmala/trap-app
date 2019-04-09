@@ -32,7 +32,6 @@ public class FeedFragment extends Fragment {
 
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
-    RecyclerView.LayoutManager layoutManager;
 
     private static final String TAG = "FeedFragment";
     ArrayList<Trap> trapsList = new ArrayList<>();
@@ -57,7 +56,7 @@ public class FeedFragment extends Fragment {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (GeoPoint) document.get("location"), (Timestamp) document.get("time")));
+                                trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
                             }
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());

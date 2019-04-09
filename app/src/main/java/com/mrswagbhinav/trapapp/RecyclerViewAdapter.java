@@ -21,7 +21,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>{
 
     private  static  final String TAG = "RecyclerViewAdapter";
-    ArrayList<Trap> trapsList = new ArrayList<>();
+    ArrayList<Trap> trapsList;
     private Context mContext;
 
     public RecyclerViewAdapter(ArrayList<Trap> trapsList, Context mContext) {
@@ -38,16 +38,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         Log.d(TAG, "onBindViewHolder: called.");
 
         viewHolder.textViewTitle.setText(trapsList.get(position).getTitle());
-        viewHolder.textViewHost.setText(trapsList.get(position).getHost());
+        //viewHolder.textViewHost.setText(trapsList.get(position).getHost());
+        viewHolder.textViewLocationName.setText(trapsList.get(position).getLocationName());
+        viewHolder.textViewTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
 
         viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "toast", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, trapsList.get(position).getLocationAddress(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -63,6 +65,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         CircleImageView imageView;
         TextView textViewTitle;
         TextView textViewHost;
+        TextView textViewLocationName;
+        TextView textViewTime;
         ConstraintLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
@@ -70,6 +74,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             imageView = itemView.findViewById(R.id.id_imageViewTrap);
             textViewTitle = itemView.findViewById(R.id.id_textViewTitle);
             textViewHost = itemView.findViewById(R.id.id_textViewHost);
+            textViewLocationName = itemView.findViewById(R.id.id_textViewLocation);
+            textViewTime = itemView.findViewById(R.id.id_textViewTime);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }

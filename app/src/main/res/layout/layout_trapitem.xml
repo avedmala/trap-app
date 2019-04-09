@@ -5,7 +5,7 @@
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="15dp">
+    android:padding="10dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/id_imageViewTrap"
@@ -53,9 +53,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="Location"
-        app:layout_constraintBottom_toBottomOf="@+id/id_textViewTime"
-        app:layout_constraintStart_toEndOf="@+id/id_textViewTime"
-        app:layout_constraintTop_toTopOf="@+id/id_textViewTime" />
+        app:layout_constraintEnd_toEndOf="@+id/id_textViewTime"
+        app:layout_constraintStart_toStartOf="@+id/id_textViewTitle"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewTitle" />
 
 </android.support.constraint.ConstraintLayout>

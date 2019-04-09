@@ -10,14 +10,16 @@ public class Trap {
     private String title;
     private String host;
     //private ArrayList<String> commits;
-    private GeoPoint geoPoint;
+    private String locationName;
+    private String locationAddress;
     private Timestamp timestamp;
 
-    public Trap (String title, String host, GeoPoint geoPoint, Timestamp timestamp) {
+    public Trap (String title, String host, String locationName, String locationAddress, Timestamp timestamp) {
         this.title = title;
         this.host = host;
         //this.commits = commits;
-        this.geoPoint = geoPoint;
+        this.locationName = locationName;
+        this.locationAddress = locationAddress;
         this.timestamp = timestamp;
     }
 
@@ -41,12 +43,20 @@ public class Trap {
 //        commits.add(user);
 //    }
 
-    public GeoPoint getGeoPoint() {
-        return geoPoint;
+    public String getLocationName() {
+        return locationName;
     }
 
-    public void setGeoPoint(GeoPoint gp) {
-        geoPoint = gp;
+    public void setLocationName(String str) {
+        locationName = str;
+    }
+
+    public String getLocationAddress() {
+        return locationAddress;
+    }
+
+    public void setLocationAddress(String str) {
+        locationAddress = str;
     }
 
     public Timestamp getTimestamp() {
