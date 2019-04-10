@@ -44,7 +44,6 @@ public class FeedFragment extends Fragment {
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
 
-    JSONObject jsonObject;
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     private static final String TAG = "FeedFragment";
     ArrayList<Trap> trapsList = new ArrayList<>();
@@ -60,7 +59,7 @@ public class FeedFragment extends Fragment {
 
         recyclerView = fragmentView.findViewById(R.id.id_recyclerView);
 
-        FirebaseFirestore db = ((MainActivity)getActivity()).db;
+        final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -75,32 +74,32 @@ public class FeedFragment extends Fragment {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
 //                        populate page here
-                        try {
+                        /*try {
                             String lat = String.valueOf(((MainActivity)getActivity()).latitude);
                             String lng = String.valueOf(((MainActivity)getActivity()).longitude);
 
                             String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+API_KEY;
                             String currentAddress = new getCurrentAddress().execute(geocodeURL).get();
                             //sorting
-//                            Double temp = 999999999.d;
-//                            for(int i = 0; i < trapsList.size(); i++) {
-//                                String destinationAddress = trapsList.get(i).getLocationAddress();
-//                                String distanceURL = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+currentAddress+"&destinations="+destinationAddress+"&mode=driving&units=imperial&language=en&key="+API_KEY;
-//                                Double distance = Double.valueOf(new getMatrixDistance().execute(distanceURL).get());
-//                                if(distance < temp) {
-//                                    temp = distance;
-//                                    trapsList.remove(trapsList.set(0, trapsList.get(i)));
-//                                }
-//                            }
+                            Double temp = 999999999.d;
+                            for(int i = 0; i < trapsList.size(); i++) {
+                                String destinationAddress = trapsList.get(i).getLocationAddress();
+                                String distanceURL = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+currentAddress+"&destinations="+destinationAddress+"&mode=driving&units=imperial&language=en&key="+API_KEY;
+                                Double distance = Double.valueOf(new getMatrixDistance().execute(distanceURL).get());
+                                if(distance < temp) {
+                                    temp = distance;
+                                    trapsList.remove(trapsList.set(0, trapsList.get(i)));
+                                }
+                            }
                             //end of sorting
 
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
-                        }
+                        }*/
 
-                        adapter = new RecyclerViewAdapter(trapsList, getActivity());
+                        adapter = new RecyclerViewAdapter(trapsList, db, getActivity());
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                     }
@@ -114,6 +113,8 @@ public class FeedFragment extends Fragment {
         protected String doInBackground(String... params) {
             String currentAddress = null;
             String s = null;
+            JSONObject jsonObject;
+
             try {
                 URL url = new URL(params[0]);
                 URLConnection urlConnection = url.openConnection();
@@ -139,7 +140,6 @@ public class FeedFragment extends Fragment {
 
             return currentAddress;
         }
-
     }//getAddress
 
     private class getMatrixDistance extends AsyncTask<String, Void, String> {
@@ -147,6 +147,7 @@ public class FeedFragment extends Fragment {
         protected String doInBackground(String... params) {
             String distance = null;
             String s = null;
+            JSONObject jsonObject;
             try {
                 URL url = new URL(params[0]);
                 URLConnection urlConnection = url.openConnection();

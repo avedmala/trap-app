@@ -10,7 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -36,8 +38,6 @@ import java.util.concurrent.ExecutionException;
 
 public class NewtrapFragment extends Fragment {
 
-    String s;
-    JSONObject jsonObject;
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     String TAG = "NewtrapFragment";
 
@@ -53,11 +53,24 @@ public class NewtrapFragment extends Fragment {
         EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
         final EditText editTextName = fragmentView.findViewById(R.id.id_editTextName);
         final EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
+        Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         final FirebaseUser currentUser = ((MainActivity)getActivity()).user;
 
+        final Boolean[] currentLoc = {false};
+
+        switchLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked)
+                    currentLoc[0] = true;
+                else
+                    currentLoc[0] = false;
+
+            }
+        });
 
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,11 +78,37 @@ public class NewtrapFragment extends Fragment {
                 Map<String, Object> trap = new HashMap<>();
 
                 String input = editTextAddress.getText().toString();
-                //input.replace(" ", "%20");
                 String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
 
                 try {
-                    if(new getLocationName().execute(URL).get() != null) {
+                    if(currentLoc[0]) {
+                        String lat = String.valueOf(((MainActivity)getActivity()).latitude);
+                        String lng = String.valueOf(((MainActivity)getActivity()).longitude);
+                        String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+API_KEY;
+
+                        trap.put("host", currentUser.getUid());
+                        trap.put("title", editTextName.getText().toString());
+                        trap.put("time", Timestamp.now());
+                        trap.put("location_name", new getCurrentAddress().execute(geocodeURL).get());
+                        trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
+
+                        db.collection("traps").document()
+                                .set(trap)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                                        Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w(TAG, "Error writing document", e);
+                                    }
+                                });
+                    }
+                    else if(new getLocationName().execute(URL).get() != null) {
                         trap.put("host", currentUser.getUid());
                         trap.put("title", editTextName.getText().toString());
                         trap.put("time", Timestamp.now());
@@ -112,6 +151,8 @@ public class NewtrapFragment extends Fragment {
         @Override
         protected String doInBackground(String... params) {
             String locationAddress = null;
+            String s = null;
+            JSONObject jsonObject;
             try {
                 URL url = new URL(params[0]);
                 URLConnection urlConnection = url.openConnection();
@@ -144,11 +185,13 @@ public class NewtrapFragment extends Fragment {
         @Override
         protected String doInBackground(String... params) {
             String locationName = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
             try {
                 URL url = new URL(params[0]);
                 URLConnection urlConnection = url.openConnection();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                String temp;
 
                 while((temp = bufferedReader.readLine()) != null){
                     s += temp;
@@ -170,6 +213,39 @@ public class NewtrapFragment extends Fragment {
         }
 
     }//getName
+
+    private class getCurrentAddress extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String currentAddress = null;
+            String s = null;
+            JSONObject jsonObject;
+
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String temp;
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                currentAddress = jsonObject.getJSONArray("results").getJSONObject(0).getString("formatted_address");
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return currentAddress;
+        }
+    }//getAddress
 
 
 }
