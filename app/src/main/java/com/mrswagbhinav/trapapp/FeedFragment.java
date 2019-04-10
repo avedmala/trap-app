@@ -57,7 +57,7 @@ public class FeedFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_feed, null);
 
-        recyclerView = fragmentView.findViewById(R.id.id_recyclerView);
+        recyclerView = fragmentView.findViewById(R.id.id_recyclerViewFeed);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         db.collection("traps")
@@ -70,7 +70,8 @@ public class FeedFragment extends Fragment {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
                             }
-                        } else {
+                        }
+                        else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
 //                        populate page here

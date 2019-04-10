@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.ArrayList;
 
 
 public class ProfileFragment extends Fragment {
@@ -37,6 +38,9 @@ public class ProfileFragment extends Fragment {
 
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
+        textViewFriendCount.setText(String.valueOf(((ArrayList)document.get("friends")).size()));
+        textViewTrapCount.setText(String.valueOf(((ArrayList)document.get("traps")).size()));
+        textViewBio.setText(document.get("bio").toString());
 
         imageViewSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,6 +50,13 @@ public class ProfileFragment extends Fragment {
                 fragmentTransaction.add(R.id.fragment_container, new SettingsFragment());
                 fragmentTransaction.hide(ProfileFragment.this);
                 fragmentTransaction.commit();
+            }
+        });
+
+        textViewFriendCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
 
