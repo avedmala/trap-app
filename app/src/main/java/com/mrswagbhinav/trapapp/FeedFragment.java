@@ -187,37 +187,17 @@ public class FeedFragment extends Fragment {
         }
     }
 
-    private class getMatrixDistance extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            int distance = 0;
-            String s = null;
-            JSONObject jsonObject;
-            try {
-                URL url = new URL(params[0]);
-                URLConnection urlConnection = url.openConnection();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                String temp;
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null) {
 
-                while((temp = bufferedReader.readLine()) != null){
-                    s += temp;
-                }
-                s = s.replace("null", "");
-
-                jsonObject = new JSONObject(s);
-                distance = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance").getInt("value");
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            return String.valueOf(distance);
         }
+    }
 
-    }//getAddress
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 
 }

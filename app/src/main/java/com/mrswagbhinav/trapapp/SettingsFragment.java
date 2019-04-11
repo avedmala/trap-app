@@ -10,6 +10,9 @@ import android.view.ViewGroup;
 
 public class SettingsFragment extends Fragment {
 
+    String TAG = "SettingsFragment";
+
+
     public SettingsFragment(){
         // Required empty public constructor
     }
@@ -20,4 +23,18 @@ public class SettingsFragment extends Fragment {
 
         return fragmentView;
     }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null) {
+
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
 }

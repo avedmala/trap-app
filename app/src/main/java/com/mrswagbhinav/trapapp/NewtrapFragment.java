@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +43,12 @@ public class NewtrapFragment extends Fragment {
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     String TAG = "NewtrapFragment";
 
+    String NAME;
+    String ADDRESS;
+    String DATE;
+    String TIME;
+    boolean SWITCH = true;
+
     public NewtrapFragment(){
         // Required empty public constructor
     }
@@ -56,18 +64,90 @@ public class NewtrapFragment extends Fragment {
         Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
+        if(NAME != null) {
+            editTextName.setText(NAME);
+            editTextAddress.setText(ADDRESS);
+            editTextDate.setText(DATE);
+            editTextTime.setText(TIME);
+            switchLocation.setChecked(SWITCH);
+        }
+
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         final FirebaseUser currentUser = ((MainActivity)getActivity()).user;
 
         final Boolean[] currentLoc = {false};
 
+        editTextName.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                NAME = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        editTextAddress.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                ADDRESS = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        editTextDate.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                DATE = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        editTextTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                TIME = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
         switchLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked)
+                if(isChecked) {
                     currentLoc[0] = true;
-                else
+                    SWITCH = true;
+                }
+                else {
                     currentLoc[0] = false;
+                    SWITCH = false;
+                }
 
             }
         });
@@ -247,5 +327,42 @@ public class NewtrapFragment extends Fragment {
         }
     }//getAddress
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("NAME", NAME);
+        savedInstanceState.putString("ADDRESS", ADDRESS);
+        savedInstanceState.putString("DATE", DATE);
+        savedInstanceState.putString("TIME", TIME);
+        savedInstanceState.putBoolean("SWITCH", SWITCH);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "HI1");
+        if(savedInstanceState != null) {
+            NAME = savedInstanceState.getString("NAME");
+            ADDRESS = savedInstanceState.getString("ADDRESS");
+            DATE = savedInstanceState.getString("DATE");
+            TIME = savedInstanceState.getString("TIME");
+            SWITCH = savedInstanceState.getBoolean("SWITCH");
+        }
+    }
+
+
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        Log.d(TAG, "HI2");
+        if(savedInstanceState != null) {
+            NAME = savedInstanceState.getString("NAME");
+            ADDRESS = savedInstanceState.getString("ADDRESS");
+            DATE = savedInstanceState.getString("DATE");
+            TIME = savedInstanceState.getString("TIME");
+            SWITCH = savedInstanceState.getBoolean("SWITCH");
+        }
+    }
 
 }
