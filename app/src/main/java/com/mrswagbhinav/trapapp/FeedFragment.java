@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -47,6 +48,7 @@ public class FeedFragment extends Fragment {
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     private static final String TAG = "FeedFragment";
     ArrayList<Trap> trapsList = new ArrayList<>();
+    String destinations;
 
 
     public FeedFragment(){
@@ -74,31 +76,8 @@ public class FeedFragment extends Fragment {
                         else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
-//                        populate page here
-                        /*try {
-                            String lat = String.valueOf(((MainActivity)getActivity()).latitude);
-                            String lng = String.valueOf(((MainActivity)getActivity()).longitude);
 
-                            String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+API_KEY;
-                            String currentAddress = new getCurrentAddress().execute(geocodeURL).get();
-                            //sorting
-                            Double temp = 999999999.d;
-                            for(int i = 0; i < trapsList.size(); i++) {
-                                String destinationAddress = trapsList.get(i).getLocationAddress();
-                                String distanceURL = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+currentAddress+"&destinations="+destinationAddress+"&mode=driving&units=imperial&language=en&key="+API_KEY;
-                                Double distance = Double.valueOf(new getMatrixDistance().execute(distanceURL).get());
-                                if(distance < temp) {
-                                    temp = distance;
-                                    trapsList.remove(trapsList.set(0, trapsList.get(i)));
-                                }
-                            }
-                            //end of sorting
-
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }*/
+                        sort(trapsList);
 
                         adapter = new RecyclerViewAdapter(trapsList, db, getActivity());
                         recyclerView.setAdapter(adapter);
@@ -107,6 +86,39 @@ public class FeedFragment extends Fragment {
                 });
 
         return fragmentView;
+    }
+
+    private void sort(ArrayList<Trap> traps) {
+        try {
+            String lat = String.valueOf(((MainActivity)getActivity()).latitude);
+            String lng = String.valueOf(((MainActivity)getActivity()).longitude);
+
+            for(int i = 0; i < traps.size()-1; i++) {
+                int index = i;
+                for(int j = i+1; j < traps.size(); j++) {
+
+                    String destinationAddressJ = traps.get(j).getLocationAddress();
+                    String destinationAddressI = traps.get(index).getLocationAddress();
+                    String distanceURLJ = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressJ+"&mode=driving&units=imperial&language=en&key="+API_KEY;
+                    String distanceURLI = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressI+"&mode=driving&units=imperial&language=en&key="+API_KEY;
+                    int distanceJ = new getDistance().execute(distanceURLJ).get();
+                    int distanceI = new getDistance().execute(distanceURLI).get();
+
+                    if(distanceJ < distanceI) {
+                        index = j;
+                    }
+                }
+                Trap temp = traps.get(index);
+                traps.set(index, traps.get(i));
+                traps.set(i, temp);
+            }
+            //end of sorting
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class getCurrentAddress extends AsyncTask<String, Void, String> {
@@ -143,10 +155,10 @@ public class FeedFragment extends Fragment {
         }
     }//getAddress
 
-    private class getMatrixDistance extends AsyncTask<String, Void, String> {
+    private class getDistance extends AsyncTask<String, Void, Integer> {
         @Override
-        protected String doInBackground(String... params) {
-            String distance = null;
+        protected Integer doInBackground(String... params) {
+            int distance = 0;
             String s = null;
             JSONObject jsonObject;
             try {
@@ -160,11 +172,8 @@ public class FeedFragment extends Fragment {
                 }
                 s = s.replace("null", "");
 
-
                 jsonObject = new JSONObject(s);
-                distance = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance").getString("text");
-                distance = distance.replace(" mi", "");
-                distance = distance.replace(",", "");
+                distance = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance").getInt("value");
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -175,6 +184,38 @@ public class FeedFragment extends Fragment {
             }
 
             return distance;
+        }
+    }
+
+    private class getMatrixDistance extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            int distance = 0;
+            String s = null;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String temp;
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                distance = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance").getInt("value");
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return String.valueOf(distance);
         }
 
     }//getAddress

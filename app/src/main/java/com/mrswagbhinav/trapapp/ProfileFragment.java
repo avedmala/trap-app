@@ -1,5 +1,8 @@
 package com.mrswagbhinav.trapapp;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,7 +22,10 @@ import java.util.ArrayList;
 
 public class ProfileFragment extends Fragment {
 
-    public ProfileFragment(){
+    public static final int PICK_IMAGE = 1;
+    Bitmap profileImage;
+
+    public ProfileFragment() {
         // Required empty public constructor
     }
 
@@ -33,13 +39,14 @@ public class ProfileFragment extends Fragment {
         TextView textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
         TextView textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
         ImageView imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
+        final ImageView imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
 
-        DocumentSnapshot document = ((MainActivity)getActivity()).document;
+        DocumentSnapshot document = ((MainActivity) getActivity()).document;
 
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
-        textViewFriendCount.setText(String.valueOf(((ArrayList)document.get("friends")).size()));
-        textViewTrapCount.setText(String.valueOf(((ArrayList)document.get("traps")).size()));
+        textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
+        textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
         textViewBio.setText(document.get("bio").toString());
 
         imageViewSettings.setOnClickListener(new View.OnClickListener() {
@@ -53,13 +60,25 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        textViewFriendCount.setOnClickListener(new View.OnClickListener() {
+        imageViewProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+                imageViewProfile.setImageBitmap(profileImage);
             }
         });
 
         return fragmentView;
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE) {
+            //profileImage = (Bitmap) extras.get("data");
+        }
+    }
+
 }
