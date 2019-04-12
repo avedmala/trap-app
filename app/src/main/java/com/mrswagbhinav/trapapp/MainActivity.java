@@ -1,6 +1,7 @@
 package com.mrswagbhinav.trapapp;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,6 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,6 +27,11 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -30,11 +39,15 @@ public class MainActivity extends AppCompatActivity {
     FirebaseUser user;
     FirebaseFirestore db;
     DocumentSnapshot document;
+    FirebaseStorage storage;
+    StorageReference storageReference;
+    ContentResolver cr;
 
     double longitude;
     double latitude;
 
     private static final String TAG = "MainActivity";
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -69,13 +82,16 @@ public class MainActivity extends AppCompatActivity {
 
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
+        cr = getContentResolver();
+
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ls);
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ls);
         }
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setSelectedItemId(R.id.nav_feed);
 
         Bundle bundle = this.getIntent().getExtras();
         if (bundle != null)
@@ -104,31 +120,73 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
+        //pushFragments("FeedFragment", new FeedFragment());
+        bottomNav.setSelectedItemId(R.id.nav_feed);
 
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                Fragment selectedFragment = null;
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_log:
-                        selectedFragment = new NewtrapFragment();
+                        pushFragments("NewtrapFragment", new NewtrapFragment());
                         break;
                     case R.id.nav_feed:
-                        selectedFragment = new FeedFragment();
+                        pushFragments("FeedFragment", new FeedFragment());
                         break;
                     case R.id.nav_profile:
-                        selectedFragment = new ProfileFragment();
+                        pushFragments("ProfileFragment", new ProfileFragment());
                         break;
-
                 }
 
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
                 return true;
             }
         });
 
+    }
+
+    public void pushFragments(String tag, Fragment fragment) {
+
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction ft = manager.beginTransaction();
+
+
+        if (manager.findFragmentByTag(tag) == null) {
+            ft.add(R.id.fragment_container, fragment, tag);
+        }
+
+        Fragment FeedFragment = manager.findFragmentByTag("FeedFragment");
+        Fragment NewTrapFragment = manager.findFragmentByTag("NewTrapFragment");
+        Fragment ProfileFragment = manager.findFragmentByTag("ProfileFragment");
+
+        // Hide all Fragment
+        if (FeedFragment != null) {
+            ft.hide(FeedFragment);
+        }
+        if (NewTrapFragment != null) {
+            ft.hide(NewTrapFragment);
+        }
+        if (ProfileFragment != null) {
+            ft.hide(ProfileFragment);
+        }
+
+        // Show  current Fragment
+        if (tag.equals("FeedFragment")) {
+            if (FeedFragment != null) {
+                ft.show(FeedFragment);
+            }
+        }
+        if (tag.equals("NewTrapFragment")) {
+            if (NewTrapFragment != null) {
+                ft.show(NewTrapFragment);
+            }
+        }
+        if (tag.equals("ProfileFragment")) {
+            if (ProfileFragment != null) {
+                ft.show(ProfileFragment);
+            }
+        }
+        ft.commit();
     }
 
 
