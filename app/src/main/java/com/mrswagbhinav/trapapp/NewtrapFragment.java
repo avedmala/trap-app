@@ -1,5 +1,7 @@
 package com.mrswagbhinav.trapapp;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,8 +15,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,7 +38,12 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -42,6 +51,7 @@ public class NewtrapFragment extends Fragment {
 
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     String TAG = "NewtrapFragment";
+    Calendar myCalendar;
 
     public NewtrapFragment(){
         // Required empty public constructor
@@ -51,8 +61,8 @@ public class NewtrapFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_newtrap, null);
 
-        EditText editTextDate = fragmentView.findViewById(R.id.id_editTextDate);
-        EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
+        final EditText editTextDate = fragmentView.findViewById(R.id.id_editTextDate);
+        final EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
         final EditText editTextName = fragmentView.findViewById(R.id.id_editTextName);
         final EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
         Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
@@ -61,7 +71,45 @@ public class NewtrapFragment extends Fragment {
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         final FirebaseUser currentUser = ((MainActivity)getActivity()).user;
 
-        final Boolean[] currentLoc = {false};
+        final Boolean[] currentLoc = {true};
+
+        myCalendar = Calendar.getInstance();
+        final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, monthOfYear);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                String myFormat = "MM/dd/yy"; //In which you need put here
+                SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+                editTextDate.setText(sdf.format(myCalendar.getTime()));
+            }
+
+        };
+        editTextDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new DatePickerDialog(getActivity(), date, myCalendar.get(Calendar.YEAR), myCalendar.get(Calendar.MONTH), myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
+        editTextTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar mcurrentTime = Calendar.getInstance();
+                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                int minute = mcurrentTime.get(Calendar.MINUTE);
+                TimePickerDialog mTimePicker;
+                mTimePicker = new TimePickerDialog(getActivity(), new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                        editTextTime.setText( selectedHour + ":" + selectedMinute);
+                    }
+                }, hour, minute, false);
+                mTimePicker.setTitle("Select Time");
+                mTimePicker.show();
+            }
+        });
 
         switchLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -84,16 +132,27 @@ public class NewtrapFragment extends Fragment {
                 String input = editTextAddress.getText().toString();
                 String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
 
+                int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
+                int day = Integer.valueOf(editTextDate.getText().toString().substring(3,5));
+                int month = Integer.valueOf(editTextDate.getText().toString().substring(0,2)) - 1;
+                int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0,2))-1;
+                int min = Integer.valueOf(editTextTime.getText().toString().substring(3))-1;
+
+                Date date = new Date(year, month, day, hrs, min);
+                Timestamp timestamp = new Timestamp(date);
+
                 try {
                     if(currentLoc[0]) {
                         String lat = String.valueOf(((MainActivity)getActivity()).latitude);
                         String lng = String.valueOf(((MainActivity)getActivity()).longitude);
                         String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+API_KEY;
+                        input = new getCurrentAddress().execute(geocodeURL).get();
+                        URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
 
                         trap.put("host", currentUser.getUid());
                         trap.put("title", editTextName.getText().toString());
-                        trap.put("time", Timestamp.now());
-                        trap.put("location_name", new getCurrentAddress().execute(geocodeURL).get());
+                        trap.put("time", timestamp);
+                        trap.put("location_name", new getLocationName().execute(URL).get());
                         trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
 
                         db.collection("traps").document()
@@ -115,7 +174,7 @@ public class NewtrapFragment extends Fragment {
                     else if(new getLocationName().execute(URL).get() != null) {
                         trap.put("host", currentUser.getUid());
                         trap.put("title", editTextName.getText().toString());
-                        trap.put("time", Timestamp.now());
+                        trap.put("time", timestamp);
                         trap.put("location_name", new getLocationName().execute(URL).get());
                         trap.put("location_address", new getLocationAddress().execute(URL).get());
 

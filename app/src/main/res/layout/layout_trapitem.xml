@@ -4,59 +4,56 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="10dp">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/id_imageViewTrap"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:src="@mipmap/ic_launcher"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/id_textViewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginBottom="16dp"
-        android:text="Title"
-        app:layout_constraintBottom_toBottomOf="@+id/id_imageViewTrap"
-        app:layout_constraintStart_toEndOf="@+id/id_imageViewTrap" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="Name"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/id_textViewHost"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
         android:text="Host"
-        app:layout_constraintBottom_toTopOf="@+id/id_textViewTitle"
-        app:layout_constraintStart_toEndOf="@+id/id_imageViewTrap"
-        app:layout_constraintTop_toTopOf="@+id/id_imageViewTrap" />
+        app:layout_constraintStart_toStartOf="@+id/id_textViewTitle"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewTitle" />
 
     <TextView
         android:id="@+id/id_textViewTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:text="Time"
-        app:layout_constraintBottom_toBottomOf="@+id/id_textViewHost"
-        app:layout_constraintStart_toEndOf="@+id/id_textViewHost"
+        app:layout_constraintStart_toStartOf="@+id/id_textViewLocation"
         app:layout_constraintTop_toTopOf="@+id/id_textViewHost" />
 
     <TextView
         android:id="@+id/id_textViewLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:text="Location"
         app:layout_constraintBottom_toBottomOf="@+id/id_textViewTitle"
         app:layout_constraintStart_toEndOf="@+id/id_textViewTitle"
         app:layout_constraintTop_toTopOf="@+id/id_textViewTitle" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/id_textViewHost" />
 
 </android.support.constraint.ConstraintLayout>

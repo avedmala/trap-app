@@ -14,7 +14,7 @@
         android:layout_marginBottom="32dp"
         android:ems="10"
         android:inputType="text"
-        android:text="Name"
+        android:hint="Title"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextDate"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -25,8 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:ems="10"
-        android:inputType="date"
-        android:text="Date"
+        android:focusable="false"
+        android:hint="Date"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -37,8 +37,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:ems="10"
-        android:inputType="time"
-        android:text="Time"
+        android:focusable="false"
+        android:hint="Time"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -50,7 +50,7 @@
         android:layout_marginBottom="64dp"
         android:ems="10"
         android:inputType="textPostalAddress"
-        android:text="Address"
+        android:hint="Address"
         app:layout_constraintBottom_toTopOf="@+id/id_buttonSubmit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -32,8 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-
-import de.hdodenhof.circleimageview.CircleImageView;
+import java.util.Date;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>{
 
@@ -80,7 +79,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         viewHolder.textViewTitle.setText(trapsList.get(position).getTitle());
         viewHolder.textViewLocationName.setText(trapsList.get(position).getLocationName());
-        viewHolder.textViewTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
+        Date date = trapsList.get(position).getTimestamp().toDate();
+        viewHolder.textViewTime.setText(date.toString());
 
         viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +98,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        CircleImageView imageView;
         TextView textViewTitle;
         TextView textViewHost;
         TextView textViewLocationName;
@@ -107,7 +106,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.id_imageViewTrap);
             textViewTitle = itemView.findViewById(R.id.id_textViewTitle);
             textViewHost = itemView.findViewById(R.id.id_textViewHost);
             textViewLocationName = itemView.findViewById(R.id.id_textViewLocation);
