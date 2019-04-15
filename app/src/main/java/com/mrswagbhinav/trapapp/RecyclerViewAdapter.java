@@ -10,10 +10,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -31,6 +31,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -80,8 +82,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         viewHolder.textViewTitle.setText(trapsList.get(position).getTitle());
         viewHolder.textViewLocationName.setText(trapsList.get(position).getLocationName());
         Date date = trapsList.get(position).getTimestamp().toDate();
-        viewHolder.textViewTime.setText(date.toString());
-
+        viewHolder.textViewTime.setText(getDate(date));
         viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -112,6 +113,55 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             textViewTime = itemView.findViewById(R.id.id_textViewTime);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
+    }
+
+    public String getDate(Date date) {
+        String month = null;
+        int day = date.getDate();
+        int year = date.getYear() + 1900;
+        DateFormat format = new SimpleDateFormat("hh:mm a");
+        String time = format.format(date);
+
+        switch (date.getMonth()) {
+            case 0:
+                month = "January";
+                break;
+            case 1:
+                month = "February";
+                break;
+            case 2:
+                month = "March";
+                break;
+            case 3:
+                month = "April";
+                break;
+            case 4:
+                month = "May";
+                break;
+            case 5:
+                month = "June";
+                break;
+            case 6:
+                month = "July";
+                break;
+            case 7:
+                month = "August";
+                break;
+            case 8:
+                month = "September";
+                break;
+            case 9:
+                month = "October";
+                break;
+            case 10:
+                month = "November";
+                break;
+            case 11:
+                month = "December";
+                break;
+        }
+
+        return month+" "+day+", "+year+" at "+time;
     }
 
 }

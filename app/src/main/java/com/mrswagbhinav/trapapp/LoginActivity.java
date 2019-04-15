@@ -19,6 +19,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseError;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -33,6 +34,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,6 +109,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        Log.d(TAG, String.valueOf(requestCode));
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -133,6 +136,10 @@ public class LoginActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            if(task.getResult().getAdditionalUserInfo().isNewUser()) {
+                                addData(user);
+                                Log.d(TAG, "New User");
+                            }
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -176,10 +183,14 @@ public class LoginActivity extends AppCompatActivity {
         // Create a new user with a name
         Map<String, Object> user = new HashMap<>();
         user.put("name", currentUser.getDisplayName());
+        user.put("email", currentUser.getEmail());
+        user.put("bio", "sample bio");
+        user.put("friends", new ArrayList<String>());
+        user.put("traps", new ArrayList<String>());
 
         // Add a new document with a generated ID
         db.collection("users").document(currentUser.getUid())
-                .set(user, SetOptions.merge())
+                .set(user, SetOptions.mergeFields())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -197,7 +208,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            addData(user);
             Bundle bundle = new Bundle();
             bundle.putParcelable("KEY", user);
             intentHome.putExtras(bundle);

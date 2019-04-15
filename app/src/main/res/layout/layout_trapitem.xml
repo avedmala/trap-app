@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:fontFamily="@font/ubuntu_bold"
         android:text="Name"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,6 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:fontFamily="@font/ubuntu"
         android:text="Host"
         app:layout_constraintStart_toStartOf="@+id/id_textViewTitle"
         app:layout_constraintTop_toBottomOf="@+id/id_textViewTitle" />
@@ -30,8 +32,10 @@
         android:id="@+id/id_textViewTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="@font/ubuntu_light"
         android:text="Time"
-        app:layout_constraintStart_toStartOf="@+id/id_textViewLocation"
+        app:layout_constraintStart_toEndOf="@+id/id_textViewHost"
         app:layout_constraintTop_toTopOf="@+id/id_textViewHost" />
 
     <TextView
@@ -39,6 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:fontFamily="@font/ubuntu_light"
         android:text="Location"
         app:layout_constraintBottom_toBottomOf="@+id/id_textViewTitle"
         app:layout_constraintStart_toEndOf="@+id/id_textViewTitle"

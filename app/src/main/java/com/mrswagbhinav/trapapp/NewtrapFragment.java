@@ -136,7 +136,7 @@ public class NewtrapFragment extends Fragment {
                 int day = Integer.valueOf(editTextDate.getText().toString().substring(3,5));
                 int month = Integer.valueOf(editTextDate.getText().toString().substring(0,2)) - 1;
                 int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0,2))-1;
-                int min = Integer.valueOf(editTextTime.getText().toString().substring(3))-1;
+                int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
 
                 Date date = new Date(year, month, day, hrs, min);
                 Timestamp timestamp = new Timestamp(date);

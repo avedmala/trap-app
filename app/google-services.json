@@ -15,12 +15,8 @@
       },
       "oauth_client": [
         {
-          "client_id": "501116635490-da4ndok850bjcc6p66tm0qoj60lp5ns8.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.mrswagbhinav.trapapp",
-            "certificate_hash": "f914a6dd6c037ddbe5ef59bb1fbc474996fd5527"
-          }
+          "client_id": "501116635490-mkkhhio7c4bg3k5dr3vudoa8qr34ime4.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
