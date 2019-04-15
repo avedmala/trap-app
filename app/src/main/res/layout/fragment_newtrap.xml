@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/holo_orange_dark">
@@ -69,10 +70,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:checked="true"
+        android:checked="false"
         android:showText="false"
         app:layout_constraintBottom_toBottomOf="@+id/id_editTextAddress"
         app:layout_constraintStart_toEndOf="@+id/id_editTextAddress"
-        app:layout_constraintTop_toTopOf="@+id/id_editTextAddress" />
+        app:layout_constraintTop_toTopOf="@+id/id_editTextAddress"
+        tools:checked="false" />
 
 </android.support.constraint.ConstraintLayout>

@@ -182,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Add a new document with a generated ID
         db.collection("users").document(currentUser.getUid())
-                .set(user, SetOptions.mergeFields())
+                .set(user, SetOptions.merge())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
