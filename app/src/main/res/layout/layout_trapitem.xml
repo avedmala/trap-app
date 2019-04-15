@@ -43,7 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:fontFamily="@font/ubuntu_light"
+        android:fontFamily="@font/ubuntu"
         android:text="Location"
         app:layout_constraintBottom_toBottomOf="@+id/id_textViewTitle"
         app:layout_constraintStart_toEndOf="@+id/id_textViewTitle"

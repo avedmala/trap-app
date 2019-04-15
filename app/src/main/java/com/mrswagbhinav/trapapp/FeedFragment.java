@@ -1,10 +1,12 @@
 package com.mrswagbhinav.trapapp;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -28,6 +30,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -35,12 +38,11 @@ public class FeedFragment extends Fragment {
 
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
+    SwipeRefreshLayout swipeRefreshLayout;
+    ProgressDialog dialog;
 
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     private static final String TAG = "FeedFragment";
-    ArrayList<Trap> trapsList = new ArrayList<>();
-    String destinations;
-
 
     public FeedFragment(){
         // Required empty public constructor
@@ -50,18 +52,42 @@ public class FeedFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_feed, null);
 
+        swipeRefreshLayout = fragmentView.findViewById(R.id.id_refreshViewFeed);
         recyclerView = fragmentView.findViewById(R.id.id_recyclerViewFeed);
 
+        dialog = new ProgressDialog(getActivity());
+        dialog.setMessage("Loading");
+        dialog.setCancelable(false);
+        dialog.setInverseBackgroundForced(false);
+        dialog.show();
+
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
+        setData(db);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                setData(db);
+                dialog.show();
+            }
+        });
+
+        return fragmentView;
+    }
+
+    public void setData(final FirebaseFirestore db) {
         db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        ArrayList<Trap> trapsList = new ArrayList<>();
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
+                                //check if the trap has passed
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0)
+                                    trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
                             }
                         }
                         else {
@@ -70,13 +96,16 @@ public class FeedFragment extends Fragment {
 
                         sort(trapsList);
 
+                        if(swipeRefreshLayout.isRefreshing()) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                        dialog.dismiss();
+
                         adapter = new RecyclerViewAdapter(trapsList, db, getActivity());
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                     }
                 });
-
-        return fragmentView;
     }
 
     private void sort(ArrayList<Trap> traps) {

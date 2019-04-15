@@ -1,6 +1,7 @@
 package com.mrswagbhinav.trapapp;
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ public class NewtrapFragment extends Fragment {
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     String TAG = "NewtrapFragment";
     Calendar myCalendar;
+    ProgressDialog dialog;
 
     public NewtrapFragment(){
         // Required empty public constructor
@@ -66,7 +68,7 @@ public class NewtrapFragment extends Fragment {
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         final FirebaseUser currentUser = ((MainActivity)getActivity()).user;
 
-        final Boolean[] currentLoc = {true};
+        final Boolean[] currentLoc = {false};
 
         myCalendar = Calendar.getInstance();
         final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
@@ -98,7 +100,16 @@ public class NewtrapFragment extends Fragment {
                 mTimePicker = new TimePickerDialog(getActivity(), new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                        editTextTime.setText( selectedHour + ":" + selectedMinute);
+                        String time = "";
+                        if(selectedHour < 10)
+                            time += "0"+ selectedHour + ":";
+                        else
+                            time += selectedHour + ":";
+                        if(selectedMinute < 10)
+                            time += "0" + selectedMinute;
+                        else
+                            time += selectedMinute;
+                        editTextTime.setText(time);
                     }
                 }, hour, minute, false);
                 mTimePicker.setTitle("Select Time");
@@ -122,6 +133,13 @@ public class NewtrapFragment extends Fragment {
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                dialog = new ProgressDialog(getActivity());
+                dialog.setMessage("Loading");
+                dialog.setCancelable(false);
+                dialog.setInverseBackgroundForced(false);
+                dialog.show();
+
                 Map<String, Object> trap = new HashMap<>();
 
                 String input = editTextAddress.getText().toString();
@@ -156,6 +174,7 @@ public class NewtrapFragment extends Fragment {
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         Log.d(TAG, "DocumentSnapshot successfully written!");
+                                        dialog.dismiss();
                                         Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
                                     }
                                 })
@@ -180,6 +199,7 @@ public class NewtrapFragment extends Fragment {
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         Log.d(TAG, "DocumentSnapshot successfully written!");
+                                        dialog.dismiss();
                                         Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
                                     }
                                 })
@@ -191,6 +211,7 @@ public class NewtrapFragment extends Fragment {
                                 });
                     }
                     else {
+                        dialog.dismiss();
                         Toast.makeText(getActivity(), "Invalid Address", Toast.LENGTH_SHORT).show();
                     }
                 } catch (ExecutionException e) {
