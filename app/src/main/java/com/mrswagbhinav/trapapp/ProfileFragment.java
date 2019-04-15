@@ -1,8 +1,10 @@
 package com.mrswagbhinav.trapapp;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -13,17 +15,24 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -32,6 +41,8 @@ import com.google.firebase.storage.UploadTask;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -43,6 +54,16 @@ public class ProfileFragment extends Fragment {
     public static final int PICK_IMAGE = 1;
     String TAG = "ProfileFragment";
     private Uri filePath;
+    DocumentSnapshot documentSnapshot;
+
+    SwipeRefreshLayout swipeRefreshLayout;
+    TextView textViewName;
+    TextView textViewUsername;
+    TextView textViewFriendCount;
+    TextView textViewTrapCount;
+    TextView textViewBio;
+    ImageView imageViewSettings;
+    ImageView imageViewProfile;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -50,60 +71,147 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View fragmentView = inflater.inflate(R.layout.fragment_profile, null);
+        final View fragmentView = inflater.inflate(R.layout.fragment_profile, null);
 
-        TextView textViewName = fragmentView.findViewById(R.id.id_textViewName);
-        TextView textViewUsername = fragmentView.findViewById(R.id.id_textViewUsername);
-        TextView textViewFriendCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
-        TextView textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
-        TextView textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
-        ImageView imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
-        final ImageView imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
+        swipeRefreshLayout = fragmentView.findViewById(R.id.id_refreshViewProfile);
+        textViewName = fragmentView.findViewById(R.id.id_textViewName);
+        textViewUsername = fragmentView.findViewById(R.id.id_textViewUsername);
+        textViewFriendCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
+        textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
+        textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
+        imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
+        imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
 
-        DocumentSnapshot document = ((MainActivity) getActivity()).document;
+        documentSnapshot = ((MainActivity)getActivity()).document;
+        setData(documentSnapshot);
 
-        textViewName.setText(document.get("name").toString());
-        textViewUsername.setText(document.getId());
-        textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
-        textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
-        textViewBio.setText(document.get("bio").toString());
-
-
-        ((MainActivity)getActivity()).storageReference.child("profile_pics/"+((MainActivity)getActivity()).user.getUid()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public void onSuccess(Uri uri) {
-                // Got the download URL for 'users/me/profile.png'
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle any errors
+            public void onRefresh() {
+                DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
+                docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+                                Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                                setData(documentSnapshot);
+                            } else {
+                                Log.d(TAG, "No such document");
+                            }
+                        } else {
+                            Log.d(TAG, "get failed with ", task.getException());
+                        }
+                    }
+                });
             }
         });
+
+
+//        ((MainActivity)getActivity()).storageReference.child("profile_pics/"+((MainActivity)getActivity()).user.getUid()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//            @Override
+//            public void onSuccess(Uri uri) {
+//                // Got the download URL for 'users/me/profile.png'
+//            }
+//        }).addOnFailureListener(new OnFailureListener() {
+//            @Override
+//            public void onFailure(@NonNull Exception exception) {
+//                // Handle any errors
+//            }
+//        });
 
         imageViewSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                FragmentManager manager = getFragmentManager();
-//                FragmentTransaction ft = manager.beginTransaction();
-//
-//                ft.hide(manager.findFragmentByTag("ProfileFragment"));
-//                ft.show(new SettingsFragment());
-//
-//                ft.commit();
-                uploadImage();
+                createSettingsDialog().show();
             }
         });
 
         imageViewProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chooseImage();
+
             }
         });
 
 
         return fragmentView;
+    }
+
+    public void setData(DocumentSnapshot document) {
+        textViewName.setText(document.get("name").toString());
+        textViewUsername.setText(document.getId());
+        textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
+        textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
+        textViewBio.setText(document.get("bio").toString());
+
+        if(swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
+    public AlertDialog createSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.settings_dialog, null);
+
+        final EditText editTextName = dialogView.findViewById(R.id.id_editTextSettingsName);
+        final EditText editTextBio = dialogView.findViewById(R.id.id_editTextSettingBio);
+
+        editTextName.setText(documentSnapshot.get("name").toString());
+        editTextBio.setText(documentSnapshot.get("bio").toString());
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("name", editTextName.getText().toString());
+                        user.put("bio", editTextBio.getText().toString());
+                        ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid())
+                                .set(user, SetOptions.merge())
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                                        DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
+                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()) {
+                                                    documentSnapshot = task.getResult();
+                                                    if (documentSnapshot.exists()) {
+                                                        Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                                                        setData(documentSnapshot);
+                                                    } else {
+                                                        Log.d(TAG, "No such document");
+                                                    }
+                                                } else {
+                                                    Log.d(TAG, "get failed with ", task.getException());
+                                                }
+                                            }
+                                        });
+                                        setData(documentSnapshot);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w(TAG, "Error writing document", e);
+                                    }
+                                });
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        return builder.create();
     }
 
     private void chooseImage() {
