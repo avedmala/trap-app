@@ -44,6 +44,8 @@ public class FeedFragment extends Fragment {
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     private static final String TAG = "FeedFragment";
 
+    boolean time = true;
+
     public FeedFragment(){
         // Required empty public constructor
     }
@@ -63,6 +65,22 @@ public class FeedFragment extends Fragment {
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         setData(db);
+
+        ((MainActivity)getActivity()).buttonFilterFeed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(time) {
+                    dialog.show();
+                    time = false;
+                    setData(db);
+                }
+                else {
+                    dialog.show();
+                    time = true;
+                    setData(db);
+                }
+            }
+        });
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -94,7 +112,10 @@ public class FeedFragment extends Fragment {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
 
-                        sort(trapsList);
+                        if(time)
+                            sortTime(trapsList);
+                        else
+                            sortDistance(trapsList);
 
                         if(swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
@@ -108,7 +129,7 @@ public class FeedFragment extends Fragment {
                 });
     }
 
-    private void sort(ArrayList<Trap> traps) {
+    private void sortDistance(ArrayList<Trap> traps) {
         try {
             String lat = String.valueOf(((MainActivity)getActivity()).latitude);
             String lng = String.valueOf(((MainActivity)getActivity()).longitude);
@@ -132,12 +153,28 @@ public class FeedFragment extends Fragment {
                 traps.set(index, traps.get(i));
                 traps.set(i, temp);
             }
-            //end of sorting
 
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void sortTime(ArrayList<Trap> traps) {
+        for(int i = 0; i < traps.size()-1; i++) {
+            int index = i;
+            for(int j = i+1; j < traps.size(); j++) {
+
+                Timestamp timeJ = traps.get(j).getTimestamp();
+                Timestamp timeI = traps.get(i).getTimestamp();
+                if(timeJ.compareTo(timeI) < 0) { //J < I
+                    index = j;
+                }
+            }
+            Trap temp = traps.get(index);
+            traps.set(index, traps.get(i));
+            traps.set(i, temp);
         }
     }
 

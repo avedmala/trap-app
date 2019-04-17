@@ -1,6 +1,7 @@
 package com.mrswagbhinav.trapapp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -9,6 +10,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -43,16 +46,22 @@ public class MainActivity extends AppCompatActivity {
     StorageReference storageReference;
     ContentResolver cr;
 
+    FloatingActionButton buttonFilterFeed;
+
     double longitude;
     double latitude;
 
     private static final String TAG = "MainActivity";
 
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        buttonFilterFeed = findViewById(R.id.id_buttonFilterFeed);
+        buttonFilterFeed.setVisibility(View.GONE);
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
@@ -93,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        Bundle bundle = this.getIntent().getExtras();
+        final Bundle bundle = this.getIntent().getExtras();
         if (bundle != null)
             user = bundle.getParcelable("KEY");
 
@@ -124,18 +133,22 @@ public class MainActivity extends AppCompatActivity {
         bottomNav.setSelectedItemId(R.id.nav_feed);
 
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @SuppressLint("RestrictedApi")
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_log:
                         pushFragments("NewtrapFragment", new NewtrapFragment());
+                        buttonFilterFeed.setVisibility(View.GONE);
                         break;
                     case R.id.nav_feed:
                         pushFragments("FeedFragment", new FeedFragment());
+                        buttonFilterFeed.setVisibility(View.VISIBLE);
                         break;
                     case R.id.nav_profile:
                         pushFragments("ProfileFragment", new ProfileFragment());
+                        buttonFilterFeed.setVisibility(View.GONE);
                         break;
                 }
 

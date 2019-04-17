@@ -152,7 +152,9 @@ public class NewtrapFragment extends Fragment {
                 int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
 
                 Date date = new Date(year, month, day, hrs, min);
+
                 Timestamp timestamp = new Timestamp(date);
+
 
                 try {
                     if(currentLoc[0]) {
