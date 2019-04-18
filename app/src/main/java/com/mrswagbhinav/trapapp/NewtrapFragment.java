@@ -3,28 +3,44 @@ package com.mrswagbhinav.trapapp;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +52,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,12 +60,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static android.widget.AbsListView.CHOICE_MODE_MULTIPLE;
+
 public class NewtrapFragment extends Fragment {
 
     final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
     String TAG = "NewtrapFragment";
     Calendar myCalendar;
     ProgressDialog dialog;
+
+    ArrayList<String> userArray =  new ArrayList<>();
+    ArrayList<String> arrayListInvite = new ArrayList<>();
 
     public NewtrapFragment(){
         // Required empty public constructor
@@ -62,6 +84,7 @@ public class NewtrapFragment extends Fragment {
         final EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
         final EditText editTextName = fragmentView.findViewById(R.id.id_editTextName);
         final EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
+        final ImageView imageViewInvite = fragmentView.findViewById(R.id.id_imageViewInvite);
         Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
@@ -89,7 +112,6 @@ public class NewtrapFragment extends Fragment {
                 new DatePickerDialog(getActivity(), date, myCalendar.get(Calendar.YEAR), myCalendar.get(Calendar.MONTH), myCalendar.get(Calendar.DAY_OF_MONTH)).show();
             }
         });
-
         editTextTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -127,6 +149,13 @@ public class NewtrapFragment extends Fragment {
                     currentLoc[0] = false;
                 }
 
+            }
+        });
+
+        imageViewInvite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createInviteDialog().show();
             }
         });
 
@@ -169,6 +198,7 @@ public class NewtrapFragment extends Fragment {
                         trap.put("time", timestamp);
                         trap.put("location_name", new getLocationName().execute(URL).get());
                         trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
+                        trap.put("invites", arrayListInvite);
 
                         db.collection("traps").document()
                                 .set(trap)
@@ -193,7 +223,7 @@ public class NewtrapFragment extends Fragment {
                         trap.put("time", timestamp);
                         trap.put("location_name", new getLocationName().execute(URL).get());
                         trap.put("location_address", new getLocationAddress().execute(URL).get());
-
+                        trap.put("invites", arrayListInvite);
 
                         db.collection("traps").document()
                                 .set(trap)
@@ -327,5 +357,59 @@ public class NewtrapFragment extends Fragment {
             return currentAddress;
         }
     }//getAddress
+
+    public AlertDialog createInviteDialog() {
+        ((MainActivity)getActivity()).db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            for(QueryDocumentSnapshot snapshot : task.getResult()) {
+                                if(!snapshot.getId().equals(((MainActivity)getActivity()).user.getUid())) {  //adds all users but the own user
+                                    userArray.add((String) snapshot.get("name"));
+                                }
+                            }
+                        }
+                    }
+                });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.invite_dialog, null);
+
+        ListView listView = dialogView.findViewById(R.id.id_listView);
+        listView.setChoiceMode(CHOICE_MODE_MULTIPLE);
+        listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userArray));
+
+        SparseBooleanArray checkedItems = listView.getCheckedItemPositions();
+        if (checkedItems != null) {
+            for (int i=0; i<checkedItems.size(); i++) {
+                if (checkedItems.valueAt(i)) {
+                    String item = listView.getAdapter().getItem(checkedItems.keyAt(i)).toString();
+                    arrayListInvite.add(item);
+                }
+            }
+        }
+
+        builder.setView(dialogView)
+                .setTitle("Invites")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        arrayListInvite.removeAll(arrayListInvite);
+                        userArray.removeAll(userArray);
+                        dialog.cancel();
+                    }
+                });
+
+        return builder.create();
+    }
 
 }

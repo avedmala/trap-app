@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -70,11 +71,13 @@ public class FeedFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(time) {
+                    dialog.setMessage("Sorting by Distance");
                     dialog.show();
                     time = false;
                     setData(db);
                 }
                 else {
+                    dialog.setMessage("Sorting by Date");
                     dialog.show();
                     time = true;
                     setData(db);
@@ -86,6 +89,7 @@ public class FeedFragment extends Fragment {
             @Override
             public void onRefresh() {
                 setData(db);
+                dialog.setMessage("Loading");
                 dialog.show();
             }
         });
@@ -103,7 +107,7 @@ public class FeedFragment extends Fragment {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                //check if the trap has passed
+                                //check if the trap has already happened
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0)
                                     trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
                             }
