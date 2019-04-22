@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_orange_dark">
+    android:background="@color/colorBackground">
 
     <EditText
         android:id="@+id/id_editTextName"
@@ -15,6 +15,8 @@
         android:ems="10"
         android:inputType="text"
         android:hint="Title"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorText"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextDate"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -27,6 +29,8 @@
         android:ems="10"
         android:focusable="false"
         android:hint="Date"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorText"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -39,6 +43,8 @@
         android:ems="10"
         android:focusable="false"
         android:hint="Time"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorText"
         app:layout_constraintBottom_toTopOf="@+id/id_editTextAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -50,6 +56,8 @@
         android:layout_marginBottom="32dp"
         android:ems="10"
         android:hint="Address"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorText"
         android:inputType="textPostalAddress"
         app:layout_constraintBottom_toTopOf="@+id/id_imageViewInvite"
         app:layout_constraintEnd_toEndOf="parent"
@@ -71,7 +79,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="128dp"
-        android:text="Button"
+        android:text="submit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

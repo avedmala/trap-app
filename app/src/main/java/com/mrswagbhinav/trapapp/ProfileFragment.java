@@ -32,6 +32,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -59,7 +61,7 @@ public class ProfileFragment extends Fragment {
     SwipeRefreshLayout swipeRefreshLayout;
     TextView textViewName;
     TextView textViewUsername;
-    TextView textViewFriendCount;
+    TextView textViewHostCount;
     TextView textViewTrapCount;
     TextView textViewBio;
     ImageView imageViewSettings;
@@ -76,7 +78,7 @@ public class ProfileFragment extends Fragment {
         swipeRefreshLayout = fragmentView.findViewById(R.id.id_refreshViewProfile);
         textViewName = fragmentView.findViewById(R.id.id_textViewName);
         textViewUsername = fragmentView.findViewById(R.id.id_textViewUsername);
-        textViewFriendCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
+        textViewHostCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
         textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
         textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
         imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
@@ -139,12 +141,37 @@ public class ProfileFragment extends Fragment {
         return fragmentView;
     }
 
-    public void setData(DocumentSnapshot document) {
+    public void setData(final DocumentSnapshot document) {
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
-        textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
-        textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
+        //textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
+        //textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
         textViewBio.setText(document.get("bio").toString());
+
+        ((MainActivity)getActivity()).db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        int hostCount = 0;
+                        int trapCount = 0;
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot snapshot : task.getResult()) {
+                                Log.d(TAG, snapshot.getId() + " => " + snapshot.getData());
+                                if(snapshot.get("host").equals(document.getId()))
+                                    hostCount++;
+                                if(((ArrayList)snapshot.get("invites")).contains(document.getId()))
+                                    trapCount++;
+                            }
+                        }
+                        else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                        textViewHostCount.setText(hostCount + "");
+                        textViewTrapCount.setText(trapCount + "");
+                    }
+                });
+
 
         if(swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);

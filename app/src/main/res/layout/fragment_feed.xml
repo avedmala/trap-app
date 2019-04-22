@@ -4,7 +4,7 @@
     android:id="@+id/id_refreshViewFeed"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_purple"
+    android:background="@color/colorBackground"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
 

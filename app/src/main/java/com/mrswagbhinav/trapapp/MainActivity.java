@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -28,7 +30,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -76,11 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         buttonFilterFeed = findViewById(R.id.id_buttonFilterFeed);
-        buttonFilterFeed.setVisibility(View.GONE);
-
         buttonMap = findViewById(R.id.id_buttonMap);
-        buttonMap.setVisibility(View.GONE);
-
         bottomNav = findViewById(R.id.bottom_navigation);
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
         bottomNav.setSelectedItemId(R.id.nav_feed);
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -294,13 +295,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         for(Trap trap : latLngArrayList) {
                             LatLng latLng = new LatLng(trap.getLat(), trap.getLng());
-                            googleMap.addMarker(new MarkerOptions().position(latLng).title(trap.getTitle()).snippet(trap.getLocationName()));
+                            googleMap.addMarker(new MarkerOptions()
+                                    .position(latLng)
+                                    .title(trap.getTitle())
+                                    .snippet(trap.getLocationName())
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                            );
                         }
 
                     }
                 });
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
-        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
+        //googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {
