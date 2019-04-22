@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Trap App</string>
+    <string name="google_maps_key">AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg</string>
 
 </resources>

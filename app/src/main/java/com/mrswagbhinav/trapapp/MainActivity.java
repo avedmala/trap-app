@@ -8,13 +8,13 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,22 +22,33 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     FirebaseUser user;
     FirebaseFirestore db;
@@ -47,9 +58,13 @@ public class MainActivity extends AppCompatActivity {
     ContentResolver cr;
 
     FloatingActionButton buttonFilterFeed;
+    FloatingActionButton buttonMap;
+    BottomNavigationView bottomNav;
 
     Double longitude;
     Double latitude;
+
+    boolean map = false;
 
     private static final String TAG = "MainActivity";
 
@@ -62,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
 
         buttonFilterFeed = findViewById(R.id.id_buttonFilterFeed);
         buttonFilterFeed.setVisibility(View.GONE);
+
+        buttonMap = findViewById(R.id.id_buttonMap);
+        buttonMap.setVisibility(View.GONE);
+
+        bottomNav = findViewById(R.id.bottom_navigation);
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
@@ -100,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ls);
         }
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         final Bundle bundle = this.getIntent().getExtras();
         if (bundle != null)
@@ -130,28 +149,77 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //pushFragments("FeedFragment", new FeedFragment());
-        bottomNav.setSelectedItemId(R.id.nav_feed);
 
+//        bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+//            @SuppressLint("RestrictedApi")
+//            @Override
+//            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+//
+//                switch (menuItem.getItemId()) {
+//                    case R.id.nav_log:
+//                        pushFragments("NewtrapFragment", new NewtrapFragment());
+//                        buttonFilterFeed.setVisibility(View.GONE);
+//                        buttonMap.setVisibility(View.GONE);
+//                        break;
+//                    case R.id.nav_feed:
+//                        pushFragments("FeedFragment", new FeedFragment());
+//                        buttonFilterFeed.setVisibility(View.VISIBLE);
+//                        buttonMap.setVisibility(View.VISIBLE);
+//                        break;
+//                    case R.id.nav_profile:
+//                        pushFragments("ProfileFragment", new ProfileFragment());
+//                        buttonFilterFeed.setVisibility(View.GONE);
+//                        buttonMap.setVisibility(View.GONE);
+//                        break;
+//                }
+//
+//                return true;
+//            }
+//        });
+
+        buttonMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(map) {
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
+                    buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
+                    map = false;
+                }
+                else {
+                    SupportMapFragment mapFragment = new SupportMapFragment();
+                    mapFragment.getMapAsync(MainActivity.this);
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, mapFragment).commit();
+                    buttonMap.setImageResource(R.drawable.ic_map_black_24dp);
+                    map = true;
+                }
+            }
+        });
+
+        bottomNav.setSelectedItemId(R.id.nav_feed);
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @SuppressLint("RestrictedApi")
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                Fragment selectedFragment = null;
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_log:
-                        pushFragments("NewtrapFragment", new NewtrapFragment());
+                        selectedFragment = new NewtrapFragment();
                         buttonFilterFeed.setVisibility(View.GONE);
+                        buttonMap.setVisibility(View.GONE);
                         break;
                     case R.id.nav_feed:
-                        pushFragments("FeedFragment", new FeedFragment());
+                        selectedFragment = new FeedFragment();
                         buttonFilterFeed.setVisibility(View.VISIBLE);
+                        buttonMap.setVisibility(View.VISIBLE);
                         break;
                     case R.id.nav_profile:
-                        pushFragments("ProfileFragment", new ProfileFragment());
+                        selectedFragment = new ProfileFragment();
                         buttonFilterFeed.setVisibility(View.GONE);
+                        buttonMap.setVisibility(View.GONE);
                         break;
                 }
 
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
                 return true;
             }
         });
@@ -202,5 +270,52 @@ public class MainActivity extends AppCompatActivity {
         ft.commit();
     }
 
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        ArrayList<Trap> latLngArrayList = new ArrayList<>();
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+                                        latLngArrayList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint")));
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+
+                        for(Trap trap : latLngArrayList) {
+                            LatLng latLng = new LatLng(trap.getLat(), trap.getLng());
+                            googleMap.addMarker(new MarkerOptions().position(latLng).title(trap.getTitle()).snippet(trap.getLocationName()));
+                        }
+
+                    }
+                });
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
+        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                googleMap.setMinZoomPreference(1);
+            }
+        });
+
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                googleMap.setMinZoomPreference(16);
+                Toast.makeText(MainActivity.this, marker.getSnippet(), Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+    }
 
 }

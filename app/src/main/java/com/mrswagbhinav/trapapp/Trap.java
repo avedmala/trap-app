@@ -13,14 +13,17 @@ public class Trap {
     private String locationName;
     private String locationAddress;
     private Timestamp timestamp;
+    private GeoPoint geoPoint;
 
-    public Trap (String title, String host, String locationName, String locationAddress, Timestamp timestamp) {
+
+    public Trap (String title, String host, String locationName, String locationAddress, Timestamp timestamp, GeoPoint geoPoint) {
         this.title = title;
         this.host = host;
         //this.commits = commits;
         this.locationName = locationName;
         this.locationAddress = locationAddress;
         this.timestamp = timestamp;
+        this.geoPoint = geoPoint;
     }
 
     public String getTitle() {
@@ -67,5 +70,12 @@ public class Trap {
         timestamp = ts;
     }
 
+    public Double getLat() {
+        return geoPoint.getLatitude();
+    }
+
+    public Double getLng() {
+        return  geoPoint.getLongitude();
+    }
 
 }

@@ -15,10 +15,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -35,14 +42,14 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class FeedFragment extends Fragment {
+public class FeedFragment extends Fragment{
 
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
     SwipeRefreshLayout swipeRefreshLayout;
     ProgressDialog dialog;
 
-    final String API_KEY = "AIzaSyANhSagoGUbOZnH1-aGTBWjZoOCVmaQIcQ";
+    final String API_KEY = "AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg";
     private static final String TAG = "FeedFragment";
 
     boolean time = true;
@@ -94,6 +101,7 @@ public class FeedFragment extends Fragment {
             }
         });
 
+
         return fragmentView;
     }
 
@@ -108,8 +116,8 @@ public class FeedFragment extends Fragment {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-                                    if(((ArrayList) document.get("invites")).contains(((MainActivity)getActivity()).user.getUid()) || ((String) document.get("host")).equals(((MainActivity)getActivity()).user.getUid())) {     //check if user is invited or hosting
-                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
+                                    if(((ArrayList) document.get("invites")).contains(((MainActivity)getActivity()).user.getUid()) || document.get("host").equals(((MainActivity)getActivity()).user.getUid())) {     //check if user is invited or hosting
+                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint")));
                                     }
                                 }
                             }
@@ -249,18 +257,4 @@ public class FeedFragment extends Fragment {
             return distance;
         }
     }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if(savedInstanceState != null) {
-
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
 }

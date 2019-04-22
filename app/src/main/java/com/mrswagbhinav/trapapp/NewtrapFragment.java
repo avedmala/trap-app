@@ -33,6 +33,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -58,7 +59,7 @@ import static android.widget.AbsListView.CHOICE_MODE_MULTIPLE;
 
 public class NewtrapFragment extends Fragment {
 
-    final String API_KEY = "AIzaSyANhSagoGUbOZnH1-aGTBWjZoOCVmaQIcQ";
+    final String API_KEY = "AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg";
     String TAG = "NewtrapFragment";
     Calendar myCalendar;
     ProgressDialog dialog;
@@ -190,7 +191,6 @@ public class NewtrapFragment extends Fragment {
 
                         Timestamp timestamp = new Timestamp(date);
 
-
                         try {
                             if (currentLoc[0]) {
                                 String lat = String.valueOf(((MainActivity) getActivity()).latitude);
@@ -199,13 +199,16 @@ public class NewtrapFragment extends Fragment {
                                 input = new getCurrentAddress().execute(geocodeURL).get();
                                 URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
                                 URL = URL.replace(" ", "%20");
+                                GeoPoint geoPoint = new GeoPoint(Double.valueOf(lat), Double.valueOf(lng));
 
                                 trap.put("host", currentUser.getUid());
                                 trap.put("title", editTextName.getText().toString());
                                 trap.put("time", timestamp);
                                 trap.put("location_name", new getLocationName().execute(URL).get());
-                                trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
+                                trap.put("location_address", input);
+
                                 trap.put("invites", arrayListInvite);
+                                trap.put("geopoint", geoPoint);
 
                                 db.collection("traps").document()
                                         .set(trap)
@@ -224,12 +227,17 @@ public class NewtrapFragment extends Fragment {
                                             }
                                         });
                             } else if (new getLocationName().execute(URL).get() != null) {
+                                String lat = new getLat().execute(URL).get();
+                                String lng = new getLng().execute(URL).get();
+                                GeoPoint geoPoint = new GeoPoint(Double.valueOf(lat), Double.valueOf(lng));
+
                                 trap.put("host", currentUser.getUid());
                                 trap.put("title", editTextName.getText().toString());
                                 trap.put("time", timestamp);
                                 trap.put("location_name", new getLocationName().execute(URL).get());
                                 trap.put("location_address", new getLocationAddress().execute(URL).get());
                                 trap.put("invites", arrayListInvite);
+                                trap.put("geopoint", geoPoint);
 
                                 db.collection("traps").document()
                                         .set(trap)
@@ -334,6 +342,70 @@ public class NewtrapFragment extends Fragment {
         }
 
     }//getName
+
+    private class getLat extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String lat = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                lat = (String) jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").get("lat");
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return lat;
+        }
+    }//getLat
+
+    private class getLng extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String lng = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                lng = (String) jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").get("lng");
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return lng;
+        }
+    }//getLng
 
     private class getCurrentAddress extends AsyncTask<String, Void, String> {
         @Override

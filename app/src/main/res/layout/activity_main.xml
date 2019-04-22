@@ -18,6 +18,17 @@
         app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="@+id/fragment_container" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/id_buttonMap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_format_list_bulleted_black_24dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toStartOf="@+id/id_buttonFilterFeed" />
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
