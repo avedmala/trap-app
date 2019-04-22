@@ -71,6 +71,8 @@ public class NewtrapFragment extends Fragment {
 
     ArrayList<String> userArray =  new ArrayList<>();
     ArrayList<String> arrayListInvite = new ArrayList<>();
+    String tempAddress;
+    SparseBooleanArray checkedItems;
 
     public NewtrapFragment(){
         // Required empty public constructor
@@ -144,9 +146,14 @@ public class NewtrapFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
                     currentLoc[0] = true;
+                    tempAddress = editTextAddress.getText().toString();
+                    editTextAddress.setEnabled(false);
+                    editTextAddress.setText("Current Location");
                 }
                 else {
                     currentLoc[0] = false;
+                    editTextAddress.setEnabled(true);
+                    editTextAddress.setText(tempAddress);
                 }
 
             }
@@ -163,93 +170,99 @@ public class NewtrapFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                dialog = new ProgressDialog(getActivity());
-                dialog.setMessage("Loading");
-                dialog.setCancelable(false);
-                dialog.setInverseBackgroundForced(false);
-                dialog.show();
+                if (editTextTime.getText().toString() != "" && editTextDate.getText().toString() != "" && editTextName.getText().toString() != "" && arrayListInvite.size() > 0) {
+                    if(editTextAddress.getText().toString() != "" || ((MainActivity)getActivity()).latitude != null) {
 
-                Map<String, Object> trap = new HashMap<>();
+                        dialog = new ProgressDialog(getActivity());
+                        dialog.setMessage("Loading");
+                        dialog.setCancelable(false);
+                        dialog.setInverseBackgroundForced(false);
+                        dialog.show();
 
-                String input = editTextAddress.getText().toString();
-                String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
+                        Map<String, Object> trap = new HashMap<>();
 
-                int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
-                int day = Integer.valueOf(editTextDate.getText().toString().substring(3,5));
-                int month = Integer.valueOf(editTextDate.getText().toString().substring(0,2)) - 1;
-                int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0,2))-1;
-                int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
+                        String input = editTextAddress.getText().toString();
+                        String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
 
-                Date date = new Date(year, month, day, hrs, min);
+                        int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
+                        int day = Integer.valueOf(editTextDate.getText().toString().substring(3, 5));
+                        int month = Integer.valueOf(editTextDate.getText().toString().substring(0, 2)) - 1;
+                        int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0, 2)) - 1;
+                        int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
 
-                Timestamp timestamp = new Timestamp(date);
+                        Date date = new Date(year, month, day, hrs, min);
+
+                        Timestamp timestamp = new Timestamp(date);
 
 
-                try {
-                    if(currentLoc[0]) {
-                        String lat = String.valueOf(((MainActivity)getActivity()).latitude);
-                        String lng = String.valueOf(((MainActivity)getActivity()).longitude);
-                        String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+API_KEY;
-                        input = new getCurrentAddress().execute(geocodeURL).get();
-                        URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input="+input+"&inputtype=textquery&fields=formatted_address,name&key="+API_KEY;
+                        try {
+                            if (currentLoc[0]) {
+                                String lat = String.valueOf(((MainActivity) getActivity()).latitude);
+                                String lng = String.valueOf(((MainActivity) getActivity()).longitude);
+                                String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&key=" + API_KEY;
+                                input = new getCurrentAddress().execute(geocodeURL).get();
+                                URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
 
-                        trap.put("host", currentUser.getUid());
-                        trap.put("title", editTextName.getText().toString());
-                        trap.put("time", timestamp);
-                        trap.put("location_name", new getLocationName().execute(URL).get());
-                        trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
-                        trap.put("invites", arrayListInvite);
+                                trap.put("host", currentUser.getUid());
+                                trap.put("title", editTextName.getText().toString());
+                                trap.put("time", timestamp);
+                                trap.put("location_name", new getLocationName().execute(URL).get());
+                                trap.put("location_address", new getCurrentAddress().execute(geocodeURL).get());
+                                trap.put("invites", arrayListInvite);
 
-                        db.collection("traps").document()
-                                .set(trap)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                                        dialog.dismiss();
-                                        Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error writing document", e);
-                                    }
-                                });
+                                db.collection("traps").document()
+                                        .set(trap)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                dialog.dismiss();
+                                                Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.w(TAG, "Error writing document", e);
+                                            }
+                                        });
+                            } else if (new getLocationName().execute(URL).get() != null) {
+                                trap.put("host", currentUser.getUid());
+                                trap.put("title", editTextName.getText().toString());
+                                trap.put("time", timestamp);
+                                trap.put("location_name", new getLocationName().execute(URL).get());
+                                trap.put("location_address", new getLocationAddress().execute(URL).get());
+                                trap.put("invites", arrayListInvite);
+
+                                db.collection("traps").document()
+                                        .set(trap)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                dialog.dismiss();
+                                                Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.w(TAG, "Error writing document", e);
+                                            }
+                                        });
+                            } else {
+                                dialog.dismiss();
+                                Toast.makeText(getActivity(), "Invalid Address", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    else if(new getLocationName().execute(URL).get() != null) {
-                        trap.put("host", currentUser.getUid());
-                        trap.put("title", editTextName.getText().toString());
-                        trap.put("time", timestamp);
-                        trap.put("location_name", new getLocationName().execute(URL).get());
-                        trap.put("location_address", new getLocationAddress().execute(URL).get());
-                        trap.put("invites", arrayListInvite);
-
-                        db.collection("traps").document()
-                                .set(trap)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                                        dialog.dismiss();
-                                        Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error writing document", e);
-                                    }
-                                });
-                    }
-                    else {
-                        dialog.dismiss();
-                        Toast.makeText(getActivity(), "Invalid Address", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                }
+                else {
+                    Toast.makeText(getContext(), "Fill out all Fields!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -359,6 +372,13 @@ public class NewtrapFragment extends Fragment {
     }//getAddress
 
     public AlertDialog createInviteDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.invite_dialog, null);
+
+        final ListView listView = dialogView.findViewById(R.id.id_listView);
+        listView.setChoiceMode(CHOICE_MODE_MULTIPLE);
+
         ((MainActivity)getActivity()).db.collection("users")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -370,41 +390,46 @@ public class NewtrapFragment extends Fragment {
                                     userArray.add((String) snapshot.get("name"));
                                 }
                             }
+                            listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userArray));
+
+                            if (checkedItems != null) {
+                                for (int i=0; i<checkedItems.size(); i++) {
+                                    if (checkedItems.valueAt(i)) {
+                                        listView.setItemChecked(i, true);
+                                    }
+                                }
+                            }
                         }
                     }
                 });
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
-        View dialogView = dialogInflater.inflate(R.layout.invite_dialog, null);
-
-        ListView listView = dialogView.findViewById(R.id.id_listView);
-        listView.setChoiceMode(CHOICE_MODE_MULTIPLE);
-        listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userArray));
-
-        SparseBooleanArray checkedItems = listView.getCheckedItemPositions();
-        if (checkedItems != null) {
-            for (int i=0; i<checkedItems.size(); i++) {
-                if (checkedItems.valueAt(i)) {
-                    String item = listView.getAdapter().getItem(checkedItems.keyAt(i)).toString();
-                    arrayListInvite.add(item);
-                }
-            }
-        }
-
         builder.setView(dialogView)
                 .setTitle("Invites")
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Send", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        userArray = new ArrayList<>();
 
+                        checkedItems = listView.getCheckedItemPositions();
+                        if (checkedItems != null) {
+                            for (int i=0; i<checkedItems.size(); i++) {
+                                if (checkedItems.valueAt(i)) {
+                                    String item = listView.getAdapter().getItem(checkedItems.keyAt(i)).toString();
+                                    if(!arrayListInvite.contains(item)) {
+                                        arrayListInvite.add(item);
+                                    }
+                                }
+                            }
+                        }
+                        Log.d(TAG, arrayListInvite.size()+"");
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        arrayListInvite.removeAll(arrayListInvite);
-                        userArray.removeAll(userArray);
+                        arrayListInvite = new ArrayList<>();
+                        userArray = new ArrayList<>();
+                        checkedItems = null;
                         dialog.cancel();
                     }
                 });

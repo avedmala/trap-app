@@ -48,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton buttonFilterFeed;
 
-    double longitude;
-    double latitude;
+    Double longitude;
+    Double latitude;
 
     private static final String TAG = "MainActivity";
 
