@@ -15,16 +15,13 @@ import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -35,12 +32,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,12 +58,13 @@ import static android.widget.AbsListView.CHOICE_MODE_MULTIPLE;
 
 public class NewtrapFragment extends Fragment {
 
-    final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
+    final String API_KEY = "AIzaSyANhSagoGUbOZnH1-aGTBWjZoOCVmaQIcQ";
     String TAG = "NewtrapFragment";
     Calendar myCalendar;
     ProgressDialog dialog;
 
-    ArrayList<String> userArray =  new ArrayList<>();
+    ArrayList<String> userNameArray =  new ArrayList<>();
+    ArrayList<String> userIdArray =  new ArrayList<>();
     ArrayList<String> arrayListInvite = new ArrayList<>();
     String tempAddress;
     SparseBooleanArray checkedItems;
@@ -183,6 +178,7 @@ public class NewtrapFragment extends Fragment {
 
                         String input = editTextAddress.getText().toString();
                         String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
+                        URL = URL.replace(" ", "%20");
 
                         int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
                         int day = Integer.valueOf(editTextDate.getText().toString().substring(3, 5));
@@ -202,6 +198,7 @@ public class NewtrapFragment extends Fragment {
                                 String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&key=" + API_KEY;
                                 input = new getCurrentAddress().execute(geocodeURL).get();
                                 URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
+                                URL = URL.replace(" ", "%20");
 
                                 trap.put("host", currentUser.getUid());
                                 trap.put("title", editTextName.getText().toString());
@@ -387,10 +384,11 @@ public class NewtrapFragment extends Fragment {
                         if(task.isSuccessful()) {
                             for(QueryDocumentSnapshot snapshot : task.getResult()) {
                                 if(!snapshot.getId().equals(((MainActivity)getActivity()).user.getUid())) {  //adds all users but the own user
-                                    userArray.add((String) snapshot.get("name"));
+                                    userNameArray.add((String) snapshot.get("name"));
+                                    userIdArray.add(snapshot.getId());
                                 }
                             }
-                            listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userArray));
+                            listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userNameArray));
 
                             if (checkedItems != null) {
                                 for (int i=0; i<checkedItems.size(); i++) {
@@ -408,27 +406,44 @@ public class NewtrapFragment extends Fragment {
                 .setPositiveButton("Send", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        userArray = new ArrayList<>();
+                        userNameArray = new ArrayList<>();
+                        userIdArray = new ArrayList<>();
 
-                        checkedItems = listView.getCheckedItemPositions();
-                        if (checkedItems != null) {
-                            for (int i=0; i<checkedItems.size(); i++) {
-                                if (checkedItems.valueAt(i)) {
-                                    String item = listView.getAdapter().getItem(checkedItems.keyAt(i)).toString();
-                                    if(!arrayListInvite.contains(item)) {
-                                        arrayListInvite.add(item);
+                        ((MainActivity)getActivity()).db.collection("users")
+                                .get()
+                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                        if(task.isSuccessful()) {
+                                            for(QueryDocumentSnapshot snapshot : task.getResult()) {
+                                                if(!snapshot.getId().equals(((MainActivity)getActivity()).user.getUid())) {  //adds all users but the own user
+                                                    userIdArray.add(snapshot.getId());
+
+                                                }
+                                            }
+                                            checkedItems = listView.getCheckedItemPositions();
+                                            if (checkedItems != null) {
+                                                for (int i=0; i<checkedItems.size(); i++) {
+                                                    if (checkedItems.valueAt(i)) {
+                                                        //String item = listView.getAdapter().getItem(checkedItems.keyAt(i)).toString();
+                                                        String item = userIdArray.get(i);
+                                                        if(!arrayListInvite.contains(item)) {
+                                                            arrayListInvite.add(item);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        }
-                        Log.d(TAG, arrayListInvite.size()+"");
+                                });
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         arrayListInvite = new ArrayList<>();
-                        userArray = new ArrayList<>();
+                        userNameArray = new ArrayList<>();
+                        userIdArray = new ArrayList<>();
                         checkedItems = null;
                         dialog.cancel();
                     }

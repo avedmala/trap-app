@@ -42,7 +42,7 @@ public class FeedFragment extends Fragment {
     SwipeRefreshLayout swipeRefreshLayout;
     ProgressDialog dialog;
 
-    final String API_KEY = "AIzaSyDoUrSmrPDPuVihZyenQSBdU_w_ODyVzG4";
+    final String API_KEY = "AIzaSyANhSagoGUbOZnH1-aGTBWjZoOCVmaQIcQ";
     private static final String TAG = "FeedFragment";
 
     boolean time = true;
@@ -107,9 +107,11 @@ public class FeedFragment extends Fragment {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                //check if the trap has already happened
-                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0)
-                                    trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+                                    if(((ArrayList) document.get("invites")).contains(((MainActivity)getActivity()).user.getUid()) || ((String) document.get("host")).equals(((MainActivity)getActivity()).user.getUid())) {     //check if user is invited or hosting
+                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time")));
+                                    }
+                                }
                             }
                         }
                         else {
