@@ -69,12 +69,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         viewHolder.textViewLocationName.setText(trapsList.get(position).getLocationName());
         Date date = trapsList.get(position).getTimestamp().toDate();
         viewHolder.textViewTime.setText(getDate(date));
-        viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(mContext, trapsList.get(position).getLocationAddress(), Toast.LENGTH_SHORT).show();
-            }
-        });
+//        viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Toast.makeText(mContext, trapsList.get(position).getLocationAddress(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
     }
 
@@ -93,10 +93,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            textViewTitle = itemView.findViewById(R.id.id_textViewTitle);
-            textViewHost = itemView.findViewById(R.id.id_textViewHost);
-            textViewLocationName = itemView.findViewById(R.id.id_textViewLocation);
-            textViewTime = itemView.findViewById(R.id.id_textViewTime);
+            textViewTitle = itemView.findViewById(R.id.id_textViewDialogTitle);
+            textViewHost = itemView.findViewById(R.id.id_textViewDialogHost);
+            textViewLocationName = itemView.findViewById(R.id.id_textViewDialogLocation);
+            textViewTime = itemView.findViewById(R.id.id_textViewDialogTime);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }

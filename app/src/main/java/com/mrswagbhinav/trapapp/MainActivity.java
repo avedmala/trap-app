@@ -307,7 +307,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
-        //googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        googleMap.getUiSettings().setMapToolbarEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+        googleMap.getUiSettings().setTiltGesturesEnabled(true);
+
         googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {

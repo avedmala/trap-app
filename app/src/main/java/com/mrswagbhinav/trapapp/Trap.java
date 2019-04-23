@@ -9,7 +9,6 @@ public class Trap {
 
     private String title;
     private String host;
-    //private ArrayList<String> commits;
     private String locationName;
     private String locationAddress;
     private Timestamp timestamp;
@@ -19,7 +18,6 @@ public class Trap {
     public Trap (String title, String host, String locationName, String locationAddress, Timestamp timestamp, GeoPoint geoPoint) {
         this.title = title;
         this.host = host;
-        //this.commits = commits;
         this.locationName = locationName;
         this.locationAddress = locationAddress;
         this.timestamp = timestamp;
@@ -37,14 +35,6 @@ public class Trap {
     public String getHost() {
         return host;
     }
-
-//    public ArrayList<String> getCommits() {
-//        return commits;
-//    }
-//
-//    public void addCommit(String user) {
-//        commits.add(user);
-//    }
 
     public String getLocationName() {
         return locationName;

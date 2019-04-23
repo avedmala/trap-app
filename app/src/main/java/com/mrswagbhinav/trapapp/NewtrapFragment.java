@@ -206,9 +206,9 @@ public class NewtrapFragment extends Fragment {
                                 trap.put("time", timestamp);
                                 trap.put("location_name", new getLocationName().execute(URL).get());
                                 trap.put("location_address", input);
-
                                 trap.put("invites", arrayListInvite);
                                 trap.put("geopoint", geoPoint);
+                                trap.put("commits", new ArrayList<>());
 
                                 db.collection("traps").document()
                                         .set(trap)
@@ -238,6 +238,7 @@ public class NewtrapFragment extends Fragment {
                                 trap.put("location_address", new getLocationAddress().execute(URL).get());
                                 trap.put("invites", arrayListInvite);
                                 trap.put("geopoint", geoPoint);
+                                trap.put("commits", new ArrayList<>());
 
                                 db.collection("traps").document()
                                         .set(trap)

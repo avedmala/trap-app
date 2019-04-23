@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,6 +22,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -57,6 +60,7 @@ public class ProfileFragment extends Fragment {
     String TAG = "ProfileFragment";
     private Uri filePath;
     DocumentSnapshot documentSnapshot;
+    ProgressDialog dialog;
 
     SwipeRefreshLayout swipeRefreshLayout;
     TextView textViewName;
@@ -84,12 +88,16 @@ public class ProfileFragment extends Fragment {
         imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
         imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
 
+        dialog = new ProgressDialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         documentSnapshot = ((MainActivity)getActivity()).document;
         setData(documentSnapshot);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                dialog.show();
                 DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -144,8 +152,6 @@ public class ProfileFragment extends Fragment {
     public void setData(final DocumentSnapshot document) {
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
-        //textViewFriendCount.setText(String.valueOf(((ArrayList) document.get("friends")).size()));
-        //textViewTrapCount.setText(String.valueOf(((ArrayList) document.get("traps")).size()));
         textViewBio.setText(document.get("bio").toString());
 
         ((MainActivity)getActivity()).db.collection("traps")
@@ -176,6 +182,7 @@ public class ProfileFragment extends Fragment {
         if(swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
         }
+        dialog.dismiss();
     }
 
     public AlertDialog createSettingsDialog() {

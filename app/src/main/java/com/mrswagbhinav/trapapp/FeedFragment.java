@@ -1,18 +1,27 @@
 package com.mrswagbhinav.trapapp;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,12 +31,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +54,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class FeedFragment extends Fragment{
@@ -48,6 +64,7 @@ public class FeedFragment extends Fragment{
     RecyclerViewAdapter adapter;
     SwipeRefreshLayout swipeRefreshLayout;
     ProgressDialog dialog;
+    VerticalSpaceItemDecoration itemDecoration = new VerticalSpaceItemDecoration(10);
 
     final String API_KEY = "AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg";
     private static final String TAG = "FeedFragment";
@@ -64,12 +81,10 @@ public class FeedFragment extends Fragment{
 
         swipeRefreshLayout = fragmentView.findViewById(R.id.id_refreshViewFeed);
         recyclerView = fragmentView.findViewById(R.id.id_recyclerViewFeed);
+        recyclerView.addItemDecoration(itemDecoration);
 
-        dialog = new ProgressDialog(getActivity());
-        dialog.setMessage("Loading");
-        dialog.setCancelable(false);
-        dialog.setInverseBackgroundForced(false);
-        dialog.show();
+        dialog = new ProgressDialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         setData(db);
@@ -101,9 +116,76 @@ public class FeedFragment extends Fragment{
             }
         });
 
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getActivity(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Toast.makeText(getActivity(), "Accept", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                        Toast.makeText(getActivity(), "Decline", Toast.LENGTH_SHORT).show();
+                    }
+                })
+        );
 
         return fragmentView;
     }
+
+
+
+    public AlertDialog createFeedDialog(String trapID) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
+
+        final TextView textViewDialogTitle = dialogView.findViewById(R.id.id_textViewDialogTitle);
+        final TextView textViewDialogTime = dialogView.findViewById(R.id.id_textViewDialogTime);
+        final TextView textViewDialogHost = dialogView.findViewById(R.id.id_textViewDialogHost);
+        final TextView textViewDialogLocation = dialogView.findViewById(R.id.id_textViewDialogLocation);
+
+
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        return builder.create();
+    }
+
+    public AlertDialog createHostDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        return builder.create();
+    }
+
 
     public void setData(final FirebaseFirestore db) {
         db.collection("traps")
@@ -172,6 +254,21 @@ public class FeedFragment extends Fragment{
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    public class VerticalSpaceItemDecoration extends RecyclerView.ItemDecoration {
+
+        private final int verticalSpaceHeight;
+
+        public VerticalSpaceItemDecoration(int verticalSpaceHeight) {
+            this.verticalSpaceHeight = verticalSpaceHeight;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
+                                   RecyclerView.State state) {
+            outRect.bottom = verticalSpaceHeight;
         }
     }
 
