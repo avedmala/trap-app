@@ -91,8 +91,23 @@ public class ProfileFragment extends Fragment {
         dialog = new ProgressDialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        documentSnapshot = ((MainActivity)getActivity()).document;
-        setData(documentSnapshot);
+        DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    documentSnapshot = task.getResult();
+                    if (documentSnapshot.exists()) {
+                        Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                        setData(documentSnapshot);
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override

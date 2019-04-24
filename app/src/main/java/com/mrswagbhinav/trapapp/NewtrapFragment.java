@@ -10,12 +10,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
@@ -37,6 +40,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -81,7 +85,7 @@ public class NewtrapFragment extends Fragment {
         final EditText editTextDate = fragmentView.findViewById(R.id.id_editTextDate);
         final EditText editTextTime = fragmentView.findViewById(R.id.id_editTextTime);
         final EditText editTextName = fragmentView.findViewById(R.id.id_editTextName);
-        final EditText editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
+        final AutoCompleteTextView editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
         final ImageView imageViewInvite = fragmentView.findViewById(R.id.id_imageViewInvite);
         Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
@@ -137,6 +141,33 @@ public class NewtrapFragment extends Fragment {
             }
         });
 
+        editTextAddress.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(s.length() % 4 == 0) {       //doesnt check all the time to keep performance nice
+                    String URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" + s + "&inputtype=textquery&fields=name&key=" + API_KEY;
+                    URL = URL.replace(" ", "%20");
+
+                    try {
+                        ArrayList<String> locations = new getLocations().execute(URL).get();
+                        editTextAddress.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, locations));
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
         switchLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -178,7 +209,7 @@ public class NewtrapFragment extends Fragment {
                         Map<String, Object> trap = new HashMap<>();
 
                         String input = editTextAddress.getText().toString();
-                        String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
+                        String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name,geometry&key=" + API_KEY;
                         URL = URL.replace(" ", "%20");
 
                         int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
@@ -197,7 +228,7 @@ public class NewtrapFragment extends Fragment {
                                 String lng = String.valueOf(((MainActivity) getActivity()).longitude);
                                 String geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&key=" + API_KEY;
                                 input = new getCurrentAddress().execute(geocodeURL).get();
-                                URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name&key=" + API_KEY;
+                                URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name,geometry&key=" + API_KEY;
                                 URL = URL.replace(" ", "%20");
                                 GeoPoint geoPoint = new GeoPoint(Double.valueOf(lat), Double.valueOf(lng));
 
@@ -311,6 +342,45 @@ public class NewtrapFragment extends Fragment {
 
     }//getAddress
 
+    private class getLocations extends AsyncTask<String, Void, ArrayList<String>> {
+        @Override
+        protected ArrayList<String> doInBackground(String... params) {
+            String locationName;
+            String s = null;
+            ArrayList<String> locations = new ArrayList<>();
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                JSONArray predictions = new JSONArray(jsonObject.getString("predictions"));
+
+                for(int i = 0; i < predictions.length(); i++) {
+                    locationName = predictions.getJSONObject(i).getString("description");
+                    locations.add(locationName);
+                    Log.d(TAG, locationName);
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return locations;
+        }
+    }
+
     private class getLocationName extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
@@ -362,7 +432,7 @@ public class NewtrapFragment extends Fragment {
                 s = s.replace("null", "");
 
                 jsonObject = new JSONObject(s);
-                lat = (String) jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").get("lat");
+                lat = String.valueOf(jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat"));
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -394,7 +464,7 @@ public class NewtrapFragment extends Fragment {
                 s = s.replace("null", "");
 
                 jsonObject = new JSONObject(s);
-                lng = (String) jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").get("lng");
+                lng = String.valueOf(jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng"));
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -461,7 +531,7 @@ public class NewtrapFragment extends Fragment {
                                     userIdArray.add(snapshot.getId());
                                 }
                             }
-                            listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_multiple_choice, userNameArray));
+                            listView.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_multiple_choice, userNameArray));
 
                             if (checkedItems != null) {
                                 for (int i=0; i<checkedItems.size(); i++) {
@@ -491,7 +561,6 @@ public class NewtrapFragment extends Fragment {
                                             for(QueryDocumentSnapshot snapshot : task.getResult()) {
                                                 if(!snapshot.getId().equals(((MainActivity)getActivity()).user.getUid())) {  //adds all users but the own user
                                                     userIdArray.add(snapshot.getId());
-
                                                 }
                                             }
                                             checkedItems = listView.getCheckedItemPositions();

@@ -35,8 +35,10 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -53,7 +55,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Time;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -70,6 +75,11 @@ public class FeedFragment extends Fragment{
     private static final String TAG = "FeedFragment";
 
     boolean time = true;
+    ArrayList<Trap> trapsList = new ArrayList<>();
+    FirebaseFirestore db;
+    FirebaseUser user;
+
+
 
     public FeedFragment(){
         // Required empty public constructor
@@ -86,7 +96,9 @@ public class FeedFragment extends Fragment{
         dialog = new ProgressDialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        final FirebaseFirestore db = ((MainActivity)getActivity()).db;
+        user = ((MainActivity) getActivity()).user;
+
+        db = ((MainActivity)getActivity()).db;
         setData(db);
 
         ((MainActivity)getActivity()).buttonFilterFeed.setOnClickListener(new View.OnClickListener() {
@@ -119,11 +131,14 @@ public class FeedFragment extends Fragment{
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getActivity(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        Toast.makeText(getActivity(), "Accept", Toast.LENGTH_SHORT).show();
+                        if(trapsList.get(position).getHost().equals(user.getUid()))
+                            createHostDialog(position).show();
+                        else
+                            createFeedDialog(position).show();
                     }
 
                     @Override public void onLongItemClick(View view, int position) {
-                        Toast.makeText(getActivity(), "Decline", Toast.LENGTH_SHORT).show();
+
                     }
                 })
         );
@@ -133,7 +148,7 @@ public class FeedFragment extends Fragment{
 
 
 
-    public AlertDialog createFeedDialog(String trapID) {
+    public AlertDialog createFeedDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
@@ -143,27 +158,36 @@ public class FeedFragment extends Fragment{
         final TextView textViewDialogHost = dialogView.findViewById(R.id.id_textViewDialogHost);
         final TextView textViewDialogLocation = dialogView.findViewById(R.id.id_textViewDialogLocation);
 
+        textViewDialogTitle.setText(trapsList.get(position).getTitle());
+        textViewDialogTime.setText(getDate(trapsList.get(position).getTimestamp()));
+        textViewDialogHost.setText(trapsList.get(position).getHost());
+        textViewDialogLocation.setText(trapsList.get(position).getLocationAddress());
 
+        final DocumentReference trapRef = db.collection("traps").document(trapsList.get(position).getId());
 
         builder.setView(dialogView)
                 .setTitle("Settings")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        trapRef.update("commits", FieldValue.arrayUnion(user.getUid()));
+                        dialog.dismiss();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
+                        trapRef.update("commits", FieldValue.arrayRemove(user.getUid()));
+                        dialog.dismiss();
                     }
                 });
+
+        builder.setTitle(trapsList.get(position).getTitle());
 
         return builder.create();
     }
 
-    public AlertDialog createHostDialog() {
+    public AlertDialog createHostDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
@@ -183,23 +207,75 @@ public class FeedFragment extends Fragment{
                     }
                 });
 
+        builder.setIcon(R.drawable.ic_settings_black_24dp);
+
         return builder.create();
     }
 
+    public String getDate(Timestamp timestamp) {
+        Date date = timestamp.toDate();
+        String month = null;
+        int day = date.getDate();
+        int year = date.getYear() + 1900;
+        DateFormat format = new SimpleDateFormat("hh:mm a");
+        String time = format.format(date);
+
+        switch (date.getMonth()) {
+            case 0:
+                month = "January";
+                break;
+            case 1:
+                month = "February";
+                break;
+            case 2:
+                month = "March";
+                break;
+            case 3:
+                month = "April";
+                break;
+            case 4:
+                month = "May";
+                break;
+            case 5:
+                month = "June";
+                break;
+            case 6:
+                month = "July";
+                break;
+            case 7:
+                month = "August";
+                break;
+            case 8:
+                month = "September";
+                break;
+            case 9:
+                month = "October";
+                break;
+            case 10:
+                month = "November";
+                break;
+            case 11:
+                month = "December";
+                break;
+        }
+
+        return month+" "+day+", "+year+" at "+time;
+    }
 
     public void setData(final FirebaseFirestore db) {
+        trapsList = new ArrayList<>();
         db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        ArrayList<Trap> trapsList = new ArrayList<>();
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-                                    if(((ArrayList) document.get("invites")).contains(((MainActivity)getActivity()).user.getUid()) || document.get("host").equals(((MainActivity)getActivity()).user.getUid())) {     //check if user is invited or hosting
-                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint")));
+                                    //use a fresh user instead of the one from MainActivirt
+                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
                                     }
                                 }
                             }
@@ -234,8 +310,8 @@ public class FeedFragment extends Fragment{
                 int index = i;
                 for(int j = i+1; j < traps.size(); j++) {
 
-                    String destinationAddressJ = traps.get(j).getLocationAddress();
-                    String destinationAddressI = traps.get(index).getLocationAddress();
+                    String destinationAddressJ = traps.get(j).getLocationAddress().replace(" ", "%20");
+                    String destinationAddressI = traps.get(index).getLocationAddress().replace(" ", "%20");
                     String distanceURLJ = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressJ+"&mode=driving&units=imperial&language=en&key="+API_KEY;
                     String distanceURLI = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressI+"&mode=driving&units=imperial&language=en&key="+API_KEY;
                     int distanceJ = new getDistance().execute(distanceURLJ).get();
