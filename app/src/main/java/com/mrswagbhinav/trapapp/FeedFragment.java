@@ -3,6 +3,7 @@ package com.mrswagbhinav.trapapp;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
@@ -131,10 +132,12 @@ public class FeedFragment extends Fragment{
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getActivity(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        if(trapsList.get(position).getHost().equals(user.getUid()))
+                        if(trapsList.get(position).getHost().equals(user.getUid())) {
                             createHostDialog(position).show();
-                        else
+                        }
+                        else {
                             createFeedDialog(position).show();
+                        }
                     }
 
                     @Override public void onLongItemClick(View view, int position) {
@@ -149,9 +152,10 @@ public class FeedFragment extends Fragment{
 
 
     public AlertDialog createFeedDialog(int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
+
 
         final TextView textViewDialogTitle = dialogView.findViewById(R.id.id_textViewDialogTitle);
         final TextView textViewDialogTime = dialogView.findViewById(R.id.id_textViewDialogTime);
@@ -188,7 +192,7 @@ public class FeedFragment extends Fragment{
     }
 
     public AlertDialog createHostDialog(int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 

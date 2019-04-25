@@ -201,7 +201,7 @@ public class ProfileFragment extends Fragment {
     }
 
     public AlertDialog createSettingsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.settings_dialog, null);
 

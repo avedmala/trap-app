@@ -512,7 +512,7 @@ public class NewtrapFragment extends Fragment {
     }//getAddress
 
     public AlertDialog createInviteDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.invite_dialog, null);
 
