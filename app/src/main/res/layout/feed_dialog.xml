@@ -1,51 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical"
+    android:padding="16dp" >
 
     <TextView
         android:id="@+id/id_textViewDialogTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:fontFamily="@font/ubuntu_bold"
+        android:gravity="center"
         android:text="Name"
-        android:textSize="24sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="24sp" />
 
     <TextView
         android:id="@+id/id_textViewDialogHost"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:fontFamily="@font/ubuntu"
-        android:text="Host"
-        app:layout_constraintStart_toStartOf="@+id/id_textViewDialogTitle"
-        app:layout_constraintTop_toBottomOf="@+id/id_textViewDialogTitle" />
+        android:gravity="center"
+        android:text="Host" />
 
     <TextView
         android:id="@+id/id_textViewDialogTime"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:fontFamily="@font/ubuntu_light"
-        android:text="Time"
-        app:layout_constraintStart_toEndOf="@+id/id_textViewDialogHost"
-        app:layout_constraintTop_toTopOf="@+id/id_textViewDialogHost" />
+        android:fontFamily="@font/ubuntu"
+        android:gravity="center"
+        android:text="Time" />
 
     <TextView
         android:id="@+id/id_textViewDialogLocation"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:fontFamily="@font/ubuntu"
-        android:text="Location"
-        app:layout_constraintBottom_toBottomOf="@+id/id_textViewDialogTitle"
-        app:layout_constraintStart_toEndOf="@+id/id_textViewDialogTitle"
-        app:layout_constraintTop_toTopOf="@+id/id_textViewDialogTitle" />
+        android:gravity="center"
+        android:text="Location" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

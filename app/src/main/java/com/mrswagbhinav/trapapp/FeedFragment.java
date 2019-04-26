@@ -175,12 +175,14 @@ public class FeedFragment extends Fragment{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         trapRef.update("commits", FieldValue.arrayUnion(user.getUid()));
+                        trapRef.update("declines", FieldValue.arrayRemove(user.getUid()));
                         dialog.dismiss();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        trapRef.update("declines", FieldValue.arrayUnion(user.getUid()));
                         trapRef.update("commits", FieldValue.arrayRemove(user.getUid()));
                         dialog.dismiss();
                     }
@@ -277,9 +279,10 @@ public class FeedFragment extends Fragment{
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-                                    //use a fresh user instead of the one from MainActivirt
                                     if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-                                        trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) || !((ArrayList) document.get("declines")).contains(user.getUid())) {
+                                            trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                        }
                                     }
                                 }
                             }

@@ -35,7 +35,7 @@
             app:layout_constraintTop_toBottomOf="@+id/id_imageViewProfile" />
 
         <ImageView
-            android:id="@+id/id_imageViewSettings"
+            android:id="@+id/id_imageViewLogout"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginEnd="32dp"

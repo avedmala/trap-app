@@ -1,21 +1,18 @@
 package com.mrswagbhinav.trapapp;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -23,33 +20,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -57,6 +52,8 @@ import static android.app.Activity.RESULT_OK;
 public class ProfileFragment extends Fragment {
 
     public static final int PICK_IMAGE = 1;
+    private static final String default_web_client_id = "501116635490-mkkhhio7c4bg3k5dr3vudoa8qr34ime4.apps.googleusercontent.com";
+
     String TAG = "ProfileFragment";
     private Uri filePath;
     DocumentSnapshot documentSnapshot;
@@ -85,7 +82,7 @@ public class ProfileFragment extends Fragment {
         textViewHostCount = fragmentView.findViewById(R.id.id_textViewFriendCount);
         textViewTrapCount = fragmentView.findViewById(R.id.id_textViewTrapCount);
         textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
-        imageViewSettings = fragmentView.findViewById(R.id.id_imageViewSettings);
+        imageViewSettings = fragmentView.findViewById(R.id.id_imageViewLogout);
         imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
 
         dialog = new ProgressDialog(getContext());
@@ -205,52 +202,60 @@ public class ProfileFragment extends Fragment {
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.settings_dialog, null);
 
-        final EditText editTextName = dialogView.findViewById(R.id.id_editTextSettingsName);
-        final EditText editTextBio = dialogView.findViewById(R.id.id_editTextSettingBio);
+        final TextInputLayout editTextName = dialogView.findViewById(R.id.id_editTextSettingsName);
+        final TextInputLayout editTextBio = dialogView.findViewById(R.id.id_editTextSettingBio);
+        final TextInputEditText name = dialogView.findViewById(R.id.id_inputTextName);
+        final TextInputEditText bio = dialogView.findViewById(R.id.id_inputTextBio);
 
-        editTextName.setText(documentSnapshot.get("name").toString());
-        editTextBio.setText(documentSnapshot.get("bio").toString());
+        name.setText(documentSnapshot.get("name").toString());
+        bio.setText(documentSnapshot.get("bio").toString());
+
+        Resources logoutIcon = getActivity().getResources();
 
         builder.setView(dialogView)
                 .setTitle("Settings")
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        String name = editTextName.getEditText().getText().toString().trim();
+                        String bio = editTextBio.getEditText().getText().toString().trim();
+
                         Map<String, Object> user = new HashMap<>();
-                        user.put("name", editTextName.getText().toString());
-                        user.put("bio", editTextBio.getText().toString());
-                        ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid())
+                        user.put("name", name);
+                        user.put("bio", bio);
+                        ((MainActivity) getActivity()).db.collection("users").document(((MainActivity) getActivity()).user.getUid())
                                 .set(user, SetOptions.merge())
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                                        DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
-                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                if (task.isSuccessful()) {
-                                                    documentSnapshot = task.getResult();
-                                                    if (documentSnapshot.exists()) {
-                                                        Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                                                        setData(documentSnapshot);
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d(TAG, "DocumentSnapshot successfully written!");
+                                            DocumentReference docRef = ((MainActivity) getActivity()).db.collection("users").document(((MainActivity) getActivity()).user.getUid());
+                                            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        documentSnapshot = task.getResult();
+                                                        if (documentSnapshot.exists()) {
+                                                            Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                                                            setData(documentSnapshot);
+                                                        } else {
+                                                            Log.d(TAG, "No such document");
+                                                        }
                                                     } else {
-                                                        Log.d(TAG, "No such document");
+                                                        Log.d(TAG, "get failed with ", task.getException());
                                                     }
-                                                } else {
-                                                    Log.d(TAG, "get failed with ", task.getException());
                                                 }
-                                            }
-                                        });
-                                        setData(documentSnapshot);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error writing document", e);
-                                    }
-                                });
+                                            });
+                                            setData(documentSnapshot);
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "Error writing document", e);
+                                        }
+                                    });
+
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -258,7 +263,28 @@ public class ProfileFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
                     }
-                });
+                })
+                .setNeutralButton("Log Out", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestIdToken(default_web_client_id)
+                                .requestEmail()
+                                .build();
+                        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(getActivity(), gso);
+                        mAuth.signOut();
+                        mGoogleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                Intent intentHome = new Intent(getActivity(), LoginActivity.class);
+                                startActivity(intentHome);
+                            }
+                        });
+                    }
+                })
+                .setNeutralButtonIcon(logoutIcon.getDrawable(R.drawable.ic_input_black_24dp));
 
         return builder.create();
     }

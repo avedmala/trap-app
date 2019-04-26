@@ -175,6 +175,7 @@ public class NewtrapFragment extends Fragment {
                     currentLoc[0] = true;
                     tempAddress = editTextAddress.getText().toString();
                     editTextAddress.setEnabled(false);
+                    editTextAddress.setAdapter(null);
                     editTextAddress.setText("Current Location");
                 }
                 else {
@@ -240,6 +241,7 @@ public class NewtrapFragment extends Fragment {
                                 trap.put("invites", arrayListInvite);
                                 trap.put("geopoint", geoPoint);
                                 trap.put("commits", new ArrayList<>());
+                                trap.put("declines", new ArrayList<>());
 
                                 db.collection("traps").document()
                                         .set(trap)
@@ -270,6 +272,7 @@ public class NewtrapFragment extends Fragment {
                                 trap.put("invites", arrayListInvite);
                                 trap.put("geopoint", geoPoint);
                                 trap.put("commits", new ArrayList<>());
+                                trap.put("declines", new ArrayList<>());
 
                                 db.collection("traps").document()
                                         .set(trap)
@@ -546,7 +549,7 @@ public class NewtrapFragment extends Fragment {
 
         builder.setView(dialogView)
                 .setTitle("Invites")
-                .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         userNameArray = new ArrayList<>();
@@ -589,8 +592,15 @@ public class NewtrapFragment extends Fragment {
                         checkedItems = null;
                         dialog.cancel();
                     }
+                })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        arrayListInvite = new ArrayList<>();
+                        userNameArray = new ArrayList<>();
+                        userIdArray = new ArrayList<>();
+                    }
                 });
-
         return builder.create();
     }
 
