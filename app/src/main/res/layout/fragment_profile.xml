@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.SwipeRefreshLayout
+<android.support.v4.widget.SwipeRefreshLayout xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/id_refreshViewProfile"
@@ -48,7 +48,7 @@
             android:layout_width="131dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="FriendCount"
+            android:text="HostCount"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@+id/id_textViewBio"
             app:layout_constraintTop_toBottomOf="@+id/id_textViewBio" />
@@ -82,6 +82,12 @@
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@+id/id_textViewUsername"
             app:layout_constraintTop_toBottomOf="@+id/id_textViewUsername" />
+
+        <ListView
+            android:id="@+id/id_listViewProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/id_textViewFriendCount" />
 
     </android.support.constraint.ConstraintLayout>
 </android.support.v4.widget.SwipeRefreshLayout>

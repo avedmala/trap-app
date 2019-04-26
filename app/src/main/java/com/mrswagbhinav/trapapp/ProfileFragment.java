@@ -20,7 +20,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,9 +33,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -67,6 +71,7 @@ public class ProfileFragment extends Fragment {
     TextView textViewBio;
     ImageView imageViewSettings;
     ImageView imageViewProfile;
+    ListView listViewProfile;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -84,6 +89,7 @@ public class ProfileFragment extends Fragment {
         textViewBio = fragmentView.findViewById(R.id.id_textViewBio);
         imageViewSettings = fragmentView.findViewById(R.id.id_imageViewLogout);
         imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
+        listViewProfile = fragmentView.findViewById(R.id.id_listViewProfile);
 
         dialog = new ProgressDialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -157,6 +163,26 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        ((MainActivity)getActivity()).db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            //ArrayList<Trap> trapArray = new ArrayList<>();
+                            ArrayList<String> trapArray = new ArrayList<>();
+                            for(QueryDocumentSnapshot document : task.getResult()) {
+                                if(((ArrayList)document.get("commits")).contains(((MainActivity)getActivity()).user.getUid())) {  //adds all traps u commit to
+                                    //trapArray.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                    trapArray.add((String)document.get("title"));
+                                }
+                            }
+                            listViewProfile.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, trapArray));
+
+                        }
+                    }
+                });
+
 
         return fragmentView;
     }
@@ -209,8 +235,6 @@ public class ProfileFragment extends Fragment {
 
         name.setText(documentSnapshot.get("name").toString());
         bio.setText(documentSnapshot.get("bio").toString());
-
-        Resources logoutIcon = getActivity().getResources();
 
         builder.setView(dialogView)
                 .setTitle("Settings")
@@ -283,8 +307,7 @@ public class ProfileFragment extends Fragment {
                             }
                         });
                     }
-                })
-                .setNeutralButtonIcon(logoutIcon.getDrawable(R.drawable.ic_input_black_24dp));
+                });
 
         return builder.create();
     }

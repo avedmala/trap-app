@@ -1,11 +1,8 @@
 package com.mrswagbhinav.trapapp;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -21,30 +17,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,13 +39,10 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class FeedFragment extends Fragment{
@@ -69,7 +50,7 @@ public class FeedFragment extends Fragment{
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
     SwipeRefreshLayout swipeRefreshLayout;
-    ProgressDialog dialog;
+    ProgressDialog progressDialog;
     VerticalSpaceItemDecoration itemDecoration = new VerticalSpaceItemDecoration(10);
 
     final String API_KEY = "AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg";
@@ -94,10 +75,10 @@ public class FeedFragment extends Fragment{
         recyclerView = fragmentView.findViewById(R.id.id_recyclerViewFeed);
         recyclerView.addItemDecoration(itemDecoration);
 
-        dialog = new ProgressDialog(getContext());
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        user = ((MainActivity) getActivity()).user;
+        user = ((MainActivity)getActivity()).user;
 
         db = ((MainActivity)getActivity()).db;
         setData(db);
@@ -106,14 +87,14 @@ public class FeedFragment extends Fragment{
             @Override
             public void onClick(View v) {
                 if(time) {
-                    dialog.setMessage("Sorting by Distance");
-                    dialog.show();
+                    progressDialog.setMessage("Sorting by Distance");
+                    progressDialog.show();
                     time = false;
                     setData(db);
                 }
                 else {
-                    dialog.setMessage("Sorting by Date");
-                    dialog.show();
+                    progressDialog.setMessage("Sorting by Date");
+                    progressDialog.show();
                     time = true;
                     setData(db);
                 }
@@ -123,9 +104,9 @@ public class FeedFragment extends Fragment{
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                progressDialog.setMessage("Loading");
+                progressDialog.show();
                 setData(db);
-                dialog.setMessage("Loading");
-                dialog.show();
             }
         });
 
@@ -148,8 +129,6 @@ public class FeedFragment extends Fragment{
 
         return fragmentView;
     }
-
-
 
     public AlertDialog createFeedDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
@@ -177,6 +156,9 @@ public class FeedFragment extends Fragment{
                         trapRef.update("commits", FieldValue.arrayUnion(user.getUid()));
                         trapRef.update("declines", FieldValue.arrayRemove(user.getUid()));
                         dialog.dismiss();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -185,6 +167,9 @@ public class FeedFragment extends Fragment{
                         trapRef.update("declines", FieldValue.arrayUnion(user.getUid()));
                         trapRef.update("commits", FieldValue.arrayRemove(user.getUid()));
                         dialog.dismiss();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
                     }
                 });
 
@@ -203,13 +188,19 @@ public class FeedFragment extends Fragment{
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        dialog.dismiss();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
                     }
                 });
 
@@ -280,7 +271,7 @@ public class FeedFragment extends Fragment{
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
                                     if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) || !((ArrayList) document.get("declines")).contains(user.getUid())) {
+                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) && !((ArrayList) document.get("declines")).contains(user.getUid())) {
                                             trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
                                         }
                                     }
@@ -299,7 +290,7 @@ public class FeedFragment extends Fragment{
                         if(swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
-                        dialog.dismiss();
+                        progressDialog.dismiss();
 
                         adapter = new RecyclerViewAdapter(trapsList, db, getActivity());
                         recyclerView.setAdapter(adapter);
