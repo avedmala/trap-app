@@ -1,4 +1,4 @@
-# WeatherApp
+# TrapApp
 
 An Android application for creating hangouts.
 
