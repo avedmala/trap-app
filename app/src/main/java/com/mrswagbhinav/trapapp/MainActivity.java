@@ -60,7 +60,6 @@ import com.google.firebase.storage.StorageReference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -158,8 +157,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        //pushFragments("FeedFragment", new FeedFragment());
-
         final CustomViewPager viewPager = findViewById(R.id.fragment_container);
         final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new FeedFragment(), "Feed");
@@ -176,51 +173,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 if(map) {
-                    //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
-                    viewPager.setCurrentItem(0);
+                    viewPager.setCurrentItem(0, false);
                     buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
                     map = false;
                 }
                 else {
-                    //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, mapFragment).commit();
-                    viewPager.setCurrentItem(3);
+                    viewPager.setCurrentItem(3, false);
                     buttonMap.setImageResource(R.drawable.ic_map_black_24dp);
                     map = true;
                 }
             }
         });
 
-        //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
         bottomNav.setSelectedItemId(R.id.nav_feed);
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                Fragment selectedFragment = null;
 
                 switch (menuItem.getItemId()) {
                     case R.id.nav_log:
-                        selectedFragment = new NewtrapFragment();
-                        viewPager.setCurrentItem(1);
+                        viewPager.setCurrentItem(1, false);
                         buttonFilterFeed.setVisibility(View.GONE);
                         buttonMap.setVisibility(View.GONE);
                         break;
                     case R.id.nav_feed:
-                        selectedFragment = new FeedFragment();
-                        viewPager.setCurrentItem(0);
+                        viewPager.setCurrentItem(0, false);
                         buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
                         map = false;
                         buttonFilterFeed.setVisibility(View.VISIBLE);
                         buttonMap.setVisibility(View.VISIBLE);
                         break;
                     case R.id.nav_profile:
-                        selectedFragment = new ProfileFragment();
-                        viewPager.setCurrentItem(2);
+                        viewPager.setCurrentItem(2, false);
                         buttonFilterFeed.setVisibility(View.GONE);
                         buttonMap.setVisibility(View.GONE);
                         break;
                 }
-
-                //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
                 return true;
             }
         });
@@ -261,7 +249,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                 });
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
+        try {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "LAT/LNG is NULL");
+        }
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
 
 //        googleMap.getUiSettings().setMapToolbarEnabled(true);

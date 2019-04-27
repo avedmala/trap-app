@@ -3,25 +3,29 @@ package com.mrswagbhinav.trapapp;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,8 +39,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -46,7 +53,10 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,6 +82,15 @@ public class ProfileFragment extends Fragment {
     ImageView imageViewSettings;
     ImageView imageViewProfile;
     ListView listViewProfile;
+    TabLayout tabLayout;
+
+    ListAdapter trapAdapter;
+    ListAdapter hostAdapter;
+    ArrayList<Trap> trapsList = new ArrayList<>();
+    ArrayList<Trap> hostArray = new ArrayList<>();
+    FirebaseFirestore db;
+    FirebaseUser user;
+
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -90,9 +109,13 @@ public class ProfileFragment extends Fragment {
         imageViewSettings = fragmentView.findViewById(R.id.id_imageViewLogout);
         imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
         listViewProfile = fragmentView.findViewById(R.id.id_listViewProfile);
-
+        tabLayout = fragmentView.findViewById(R.id.id_profileTabs);
         dialog = new ProgressDialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        user = ((MainActivity)getActivity()).user;
+        db = ((MainActivity)getActivity()).db;
+
 
         DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -102,7 +125,7 @@ public class ProfileFragment extends Fragment {
                     documentSnapshot = task.getResult();
                     if (documentSnapshot.exists()) {
                         Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                        setData(documentSnapshot);
+                        setCounterData(documentSnapshot);
                     } else {
                         Log.d(TAG, "No such document");
                     }
@@ -116,7 +139,7 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onRefresh() {
                 dialog.show();
-                DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
+                DocumentReference docRef = db.collection("users").document(((MainActivity)getActivity()).user.getUid());
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -124,7 +147,7 @@ public class ProfileFragment extends Fragment {
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
                                 Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                                setData(documentSnapshot);
+                                setCounterData(documentSnapshot);
                             } else {
                                 Log.d(TAG, "No such document");
                             }
@@ -163,36 +186,97 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        ((MainActivity)getActivity()).db.collection("traps")
+        db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if(task.isSuccessful()) {
-                            //ArrayList<Trap> trapArray = new ArrayList<>();
-                            ArrayList<String> trapArray = new ArrayList<>();
+                            trapsList = new ArrayList<>();
+                            hostArray = new ArrayList<>();
                             for(QueryDocumentSnapshot document : task.getResult()) {
-                                if(((ArrayList)document.get("commits")).contains(((MainActivity)getActivity()).user.getUid())) {  //adds all traps u commit to
-                                    //trapArray.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
-                                    trapArray.add((String)document.get("title"));
+
+                                if(((ArrayList)document.get("commits")).contains(user.getUid())) {  //adds all traps u commit to
+                                    trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                }
+                                if(document.get("host").equals(user.getUid())) {  //adds all traps u host
+                                    hostArray.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
                                 }
                             }
-                            listViewProfile.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, trapArray));
+                            sortTime(trapsList);
+                            sortTime(hostArray);
 
+                            ArrayList<String> trapTitleArray = new ArrayList<>();
+                            ArrayList<String> hostTitleArray = new ArrayList<>();
+
+                            for(Trap trap : trapsList) {
+                                trapTitleArray.add(trap.getTitle());
+                            }
+
+                            for(Trap trap : hostArray)
+                                hostTitleArray.add(trap.getTitle());
+
+                            trapAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, trapTitleArray);
+                            hostAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, hostTitleArray);
+
+                            listViewProfile.setAdapter(trapAdapter);
                         }
                     }
                 });
 
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if(tab.getText().toString().equals("Trap")) {
+                    listViewProfile.setAdapter(trapAdapter);
+                }
+                else if(tab.getText().toString().equals("Host")) {
+                    listViewProfile.setAdapter(hostAdapter);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
+        listViewProfile.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(tabLayout.getSelectedTabPosition() == 0) {   //trap
+                    createFeedDialog(position).show();
+                }
+                else if(tabLayout.getSelectedTabPosition() == 1) {   //host
+                    createHostDialog(position).show();
+                }
+            }
+        });
+
+        listViewProfile.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(AbsListView listView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int topRowVerticalPosition = (listView == null || listView.getChildCount() == 0) ? 0 : listViewProfile.getChildAt(0).getTop();
+                swipeRefreshLayout.setEnabled((topRowVerticalPosition >= 0));
+            }
+        });
 
         return fragmentView;
     }
 
-    public void setData(final DocumentSnapshot document) {
+    public void setCounterData(final DocumentSnapshot document) {
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
         textViewBio.setText(document.get("bio").toString());
 
-        ((MainActivity)getActivity()).db.collection("traps")
+        db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -204,7 +288,7 @@ public class ProfileFragment extends Fragment {
                                 Log.d(TAG, snapshot.getId() + " => " + snapshot.getData());
                                 if(snapshot.get("host").equals(document.getId()))
                                     hostCount++;
-                                if(((ArrayList)snapshot.get("invites")).contains(document.getId()))
+                                if(((ArrayList)snapshot.get("commits")).contains(document.getId()))
                                     trapCount++;
                             }
                         }
@@ -221,6 +305,37 @@ public class ProfileFragment extends Fragment {
             swipeRefreshLayout.setRefreshing(false);
         }
         dialog.dismiss();
+    }
+
+    public void setData(final FirebaseFirestore db) {
+        trapsList = new ArrayList<>();
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) && !((ArrayList) document.get("declines")).contains(user.getUid())) {
+                                            trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+
+                        if(swipeRefreshLayout.isRefreshing()) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+//                        progressDialog.dismiss();
+                    }
+                });
     }
 
     public AlertDialog createSettingsDialog() {
@@ -261,7 +376,7 @@ public class ProfileFragment extends Fragment {
                                                         documentSnapshot = task.getResult();
                                                         if (documentSnapshot.exists()) {
                                                             Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                                                            setData(documentSnapshot);
+                                                            setCounterData(documentSnapshot);
                                                         } else {
                                                             Log.d(TAG, "No such document");
                                                         }
@@ -270,7 +385,7 @@ public class ProfileFragment extends Fragment {
                                                     }
                                                 }
                                             });
-                                            setData(documentSnapshot);
+                                            setCounterData(documentSnapshot);
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -310,6 +425,152 @@ public class ProfileFragment extends Fragment {
                 });
 
         return builder.create();
+    }
+
+    public AlertDialog createFeedDialog(int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
+
+
+        final TextView textViewDialogTitle = dialogView.findViewById(R.id.id_textViewDialogTitle);
+        final TextView textViewDialogTime = dialogView.findViewById(R.id.id_textViewDialogTime);
+        final TextView textViewDialogHost = dialogView.findViewById(R.id.id_textViewDialogHost);
+        final TextView textViewDialogLocation = dialogView.findViewById(R.id.id_textViewDialogLocation);
+
+        textViewDialogTitle.setText(trapsList.get(position).getTitle());
+        textViewDialogTime.setText(getDate(trapsList.get(position).getTimestamp()));
+        textViewDialogHost.setText(trapsList.get(position).getHost());
+        textViewDialogLocation.setText(trapsList.get(position).getLocationAddress());
+
+        final DocumentReference trapRef = db.collection("traps").document(trapsList.get(position).getId());
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        trapRef.update("commits", FieldValue.arrayUnion(user.getUid()));
+                        trapRef.update("declines", FieldValue.arrayRemove(user.getUid()));
+                        dialog.dismiss();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+                        setData(db);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        trapRef.update("declines", FieldValue.arrayUnion(user.getUid()));
+                        trapRef.update("commits", FieldValue.arrayRemove(user.getUid()));
+                        dialog.dismiss();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+                        setData(db);
+                    }
+                });
+
+        builder.setTitle(trapsList.get(position).getTitle());
+
+        return builder.create();
+    }
+
+    public AlertDialog createHostDialog(int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+                        setData(db);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+                        setData(db);
+                    }
+                });
+
+        builder.setIcon(R.drawable.ic_settings_black_24dp);
+
+        return builder.create();
+    }
+
+    public String getDate(Timestamp timestamp) {
+        Date date = timestamp.toDate();
+        String month = null;
+        int day = date.getDate();
+        int year = date.getYear() + 1900;
+        DateFormat format = new SimpleDateFormat("hh:mm a");
+        String time = format.format(date);
+
+        switch (date.getMonth()) {
+            case 0:
+                month = "January";
+                break;
+            case 1:
+                month = "February";
+                break;
+            case 2:
+                month = "March";
+                break;
+            case 3:
+                month = "April";
+                break;
+            case 4:
+                month = "May";
+                break;
+            case 5:
+                month = "June";
+                break;
+            case 6:
+                month = "July";
+                break;
+            case 7:
+                month = "August";
+                break;
+            case 8:
+                month = "September";
+                break;
+            case 9:
+                month = "October";
+                break;
+            case 10:
+                month = "November";
+                break;
+            case 11:
+                month = "December";
+                break;
+        }
+
+        return month+" "+day+", "+year+" at "+time;
+    }
+
+    private void sortTime(ArrayList<Trap> traps) {
+        for(int i = 0; i < traps.size()-1; i++) {
+            int index = i;
+            for(int j = i+1; j < traps.size(); j++) {
+
+                Timestamp timeJ = traps.get(j).getTimestamp();
+                Timestamp timeI = traps.get(i).getTimestamp();
+                if(timeJ.compareTo(timeI) < 0) { //J < I
+                    index = j;
+                }
+            }
+            Trap temp = traps.get(index);
+            traps.set(index, traps.get(i));
+            traps.set(i, temp);
+        }
     }
 
     private void chooseImage() {

@@ -83,11 +83,44 @@
             app:layout_constraintStart_toStartOf="@+id/id_textViewUsername"
             app:layout_constraintTop_toBottomOf="@+id/id_textViewUsername" />
 
+
+        <View
+            android:id="@+id/id_profileDivider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/cardview_dark_background"
+            app:layout_constraintTop_toBottomOf="@+id/id_profileTabs"
+            tools:ignore="PrivateResource" />
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/id_profileTabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:tabSelectedTextColor="@color/colorText"
+            app:tabTextColor="@android:color/darker_gray"
+            app:layout_constraintTop_toBottomOf="@id/id_textViewTrapCount">
+
+            <android.support.design.widget.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trap" />
+
+            <android.support.design.widget.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Host" />
+
+        </android.support.design.widget.TabLayout>
+
         <ListView
             android:id="@+id/id_listViewProfile"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/id_textViewFriendCount" />
+            android:layout_height="0dp"
+            android:divider="@android:drawable/divider_horizontal_dark"
+            android:dividerHeight="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/id_profileDivider" />
 
     </android.support.constraint.ConstraintLayout>
 </android.support.v4.widget.SwipeRefreshLayout>
