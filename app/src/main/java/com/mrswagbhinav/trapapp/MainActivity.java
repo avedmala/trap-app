@@ -12,18 +12,26 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
+import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -49,7 +57,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -150,52 +160,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //pushFragments("FeedFragment", new FeedFragment());
 
-//        bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-//            @SuppressLint("RestrictedApi")
-//            @Override
-//            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-//
-//                switch (menuItem.getItemId()) {
-//                    case R.id.nav_log:
-//                        pushFragments("NewtrapFragment", new NewtrapFragment());
-//                        buttonFilterFeed.setVisibility(View.GONE);
-//                        buttonMap.setVisibility(View.GONE);
-//                        break;
-//                    case R.id.nav_feed:
-//                        pushFragments("FeedFragment", new FeedFragment());
-//                        buttonFilterFeed.setVisibility(View.VISIBLE);
-//                        buttonMap.setVisibility(View.VISIBLE);
-//                        break;
-//                    case R.id.nav_profile:
-//                        pushFragments("ProfileFragment", new ProfileFragment());
-//                        buttonFilterFeed.setVisibility(View.GONE);
-//                        buttonMap.setVisibility(View.GONE);
-//                        break;
-//                }
-//
-//                return true;
-//            }
-//        });
+        final CustomViewPager viewPager = findViewById(R.id.fragment_container);
+        final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new FeedFragment(), "Feed");
+        adapter.addFragment(new NewtrapFragment(), "Newtrap");
+        adapter.addFragment(new ProfileFragment(), "Profile");
+
+        final SupportMapFragment mapFragment = new SupportMapFragment();
+        mapFragment.getMapAsync(MainActivity.this);
+        adapter.addFragment(mapFragment, "Map");
+
+        viewPager.setAdapter(adapter);
 
         buttonMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(map) {
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
+                    //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
+                    viewPager.setCurrentItem(0);
                     buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
                     map = false;
                 }
                 else {
-                    SupportMapFragment mapFragment = new SupportMapFragment();
-                    mapFragment.getMapAsync(MainActivity.this);
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, mapFragment).commit();
+                    //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, mapFragment).commit();
+                    viewPager.setCurrentItem(3);
                     buttonMap.setImageResource(R.drawable.ic_map_black_24dp);
                     map = true;
                 }
             }
         });
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
+        //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FeedFragment()).commit();
         bottomNav.setSelectedItemId(R.id.nav_feed);
         bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -205,70 +200,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (menuItem.getItemId()) {
                     case R.id.nav_log:
                         selectedFragment = new NewtrapFragment();
+                        viewPager.setCurrentItem(1);
                         buttonFilterFeed.setVisibility(View.GONE);
                         buttonMap.setVisibility(View.GONE);
                         break;
                     case R.id.nav_feed:
                         selectedFragment = new FeedFragment();
+                        viewPager.setCurrentItem(0);
+                        buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
+                        map = false;
                         buttonFilterFeed.setVisibility(View.VISIBLE);
                         buttonMap.setVisibility(View.VISIBLE);
                         break;
                     case R.id.nav_profile:
                         selectedFragment = new ProfileFragment();
+                        viewPager.setCurrentItem(2);
                         buttonFilterFeed.setVisibility(View.GONE);
                         buttonMap.setVisibility(View.GONE);
                         break;
                 }
 
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
+                //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
                 return true;
             }
         });
 
-    }
-
-    public void pushFragments(String tag, Fragment fragment) {
-
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction ft = manager.beginTransaction();
-
-
-        if (manager.findFragmentByTag(tag) == null) {
-            ft.add(R.id.fragment_container, fragment, tag);
-        }
-
-        Fragment FeedFragment = manager.findFragmentByTag("FeedFragment");
-        Fragment NewTrapFragment = manager.findFragmentByTag("NewTrapFragment");
-        Fragment ProfileFragment = manager.findFragmentByTag("ProfileFragment");
-
-        // Hide all Fragment
-        if (FeedFragment != null) {
-            ft.hide(FeedFragment);
-        }
-        if (NewTrapFragment != null) {
-            ft.hide(NewTrapFragment);
-        }
-        if (ProfileFragment != null) {
-            ft.hide(ProfileFragment);
-        }
-
-        // Show  current Fragment
-        if (tag.equals("FeedFragment")) {
-            if (FeedFragment != null) {
-                ft.show(FeedFragment);
-            }
-        }
-        if (tag.equals("NewTrapFragment")) {
-            if (NewTrapFragment != null) {
-                ft.show(NewTrapFragment);
-            }
-        }
-        if (tag.equals("ProfileFragment")) {
-            if (ProfileFragment != null) {
-                ft.show(ProfileFragment);
-            }
-        }
-        ft.commit();
     }
 
     @Override
@@ -308,10 +264,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
 
-        googleMap.getUiSettings().setMapToolbarEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-        googleMap.getUiSettings().setZoomGesturesEnabled(true);
-        googleMap.getUiSettings().setTiltGesturesEnabled(true);
+//        googleMap.getUiSettings().setMapToolbarEnabled(true);
+//        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+//        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+//        googleMap.getUiSettings().setTiltGesturesEnabled(true);
 
         googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
@@ -328,6 +284,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return false;
             }
         });
+    }
+
+    private class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final SparseArray<WeakReference<Fragment>> instantiatedFragments = new SparseArray<>();
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            final Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            instantiatedFragments.put(position, new WeakReference<>(fragment));
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            instantiatedFragments.remove(position);
+            super.destroyItem(container, position, object);
+        }
+
+        @Nullable
+        Fragment getFragment(final int position) {
+            final WeakReference<Fragment> wr = instantiatedFragments.get(position);
+            if (wr != null) {
+                return wr.get();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
     }
 
 }
