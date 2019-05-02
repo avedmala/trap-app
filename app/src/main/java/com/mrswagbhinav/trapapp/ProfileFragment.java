@@ -15,7 +15,6 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -89,6 +88,7 @@ public class ProfileFragment extends Fragment {
     ArrayList<Trap> trapsList = new ArrayList<>();
     ArrayList<Trap> hostArray = new ArrayList<>();
     FirebaseFirestore db;
+    DocumentReference docRef;
     FirebaseUser user;
 
 
@@ -115,9 +115,9 @@ public class ProfileFragment extends Fragment {
 
         user = ((MainActivity)getActivity()).user;
         db = ((MainActivity)getActivity()).db;
+        docRef = db.collection("users").document(((MainActivity)getActivity()).user.getUid());
 
 
-        DocumentReference docRef = ((MainActivity)getActivity()).db.collection("users").document(((MainActivity)getActivity()).user.getUid());
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -125,7 +125,7 @@ public class ProfileFragment extends Fragment {
                     documentSnapshot = task.getResult();
                     if (documentSnapshot.exists()) {
                         Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                        setCounterData(documentSnapshot);
+                        setData(documentSnapshot);
                     } else {
                         Log.d(TAG, "No such document");
                     }
@@ -139,7 +139,6 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onRefresh() {
                 dialog.show();
-                DocumentReference docRef = db.collection("users").document(((MainActivity)getActivity()).user.getUid());
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -147,7 +146,7 @@ public class ProfileFragment extends Fragment {
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
                                 Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                                setCounterData(documentSnapshot);
+                                setData(documentSnapshot);
                             } else {
                                 Log.d(TAG, "No such document");
                             }
@@ -271,7 +270,8 @@ public class ProfileFragment extends Fragment {
         return fragmentView;
     }
 
-    public void setCounterData(final DocumentSnapshot document) {
+
+    public void setData(final DocumentSnapshot document) {
         textViewName.setText(document.get("name").toString());
         textViewUsername.setText(document.getId());
         textViewBio.setText(document.get("bio").toString());
@@ -283,13 +283,41 @@ public class ProfileFragment extends Fragment {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         int hostCount = 0;
                         int trapCount = 0;
+                        trapsList = new ArrayList<>();
+                        hostArray = new ArrayList<>();
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot snapshot : task.getResult()) {
                                 Log.d(TAG, snapshot.getId() + " => " + snapshot.getData());
-                                if(snapshot.get("host").equals(document.getId()))
+                                if(snapshot.get("host").equals(document.getId())) {
+                                    hostArray.add(0, new Trap((String) snapshot.get("title"), (String) snapshot.get("host"), (String) snapshot.get("location_name"), (String) snapshot.get("location_address"), (Timestamp) snapshot.get("time"), (GeoPoint) snapshot.get("geopoint"), snapshot.getId()));
                                     hostCount++;
-                                if(((ArrayList)snapshot.get("commits")).contains(document.getId()))
+                                }
+                                if(((ArrayList)snapshot.get("commits")).contains(document.getId())) {
+                                    trapsList.add(0, new Trap((String) snapshot.get("title"), (String) snapshot.get("host"), (String) snapshot.get("location_name"), (String) snapshot.get("location_address"), (Timestamp) snapshot.get("time"), (GeoPoint) snapshot.get("geopoint"), snapshot.getId()));
                                     trapCount++;
+                                }
+                            }
+                            sortTime(trapsList);
+                            sortTime(hostArray);
+
+                            ArrayList<String> trapTitleArray = new ArrayList<>();
+                            ArrayList<String> hostTitleArray = new ArrayList<>();
+
+                            for(Trap trap : trapsList) {
+                                trapTitleArray.add(trap.getTitle());
+                            }
+
+                            for(Trap trap : hostArray)
+                                hostTitleArray.add(trap.getTitle());
+
+                            trapAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, trapTitleArray);
+                            hostAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, hostTitleArray);
+
+                            if(tabLayout.getSelectedTabPosition() == 0) {   //if tab = trap
+                                listViewProfile.setAdapter(trapAdapter);
+                            }
+                            else if(tabLayout.getSelectedTabPosition() == 1) {  //if tab = host
+                                listViewProfile.setAdapter(hostAdapter);
                             }
                         }
                         else {
@@ -304,38 +332,8 @@ public class ProfileFragment extends Fragment {
         if(swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
         }
+
         dialog.dismiss();
-    }
-
-    public void setData(final FirebaseFirestore db) {
-        trapsList = new ArrayList<>();
-        db.collection("traps")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) && !((ArrayList) document.get("declines")).contains(user.getUid())) {
-                                            trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            Log.d(TAG, "Error getting documents: ", task.getException());
-                        }
-
-                        if(swipeRefreshLayout.isRefreshing()) {
-                            swipeRefreshLayout.setRefreshing(false);
-                        }
-//                        progressDialog.dismiss();
-                    }
-                });
     }
 
     public AlertDialog createSettingsDialog() {
@@ -362,13 +360,12 @@ public class ProfileFragment extends Fragment {
                         Map<String, Object> user = new HashMap<>();
                         user.put("name", name);
                         user.put("bio", bio);
-                        ((MainActivity) getActivity()).db.collection("users").document(((MainActivity) getActivity()).user.getUid())
+                        db.collection("users").document(((MainActivity) getActivity()).user.getUid())
                                 .set(user, SetOptions.merge())
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
                                             Log.d(TAG, "DocumentSnapshot successfully written!");
-                                            DocumentReference docRef = ((MainActivity) getActivity()).db.collection("users").document(((MainActivity) getActivity()).user.getUid());
                                             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -376,7 +373,7 @@ public class ProfileFragment extends Fragment {
                                                         documentSnapshot = task.getResult();
                                                         if (documentSnapshot.exists()) {
                                                             Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
-                                                            setCounterData(documentSnapshot);
+                                                            setData(documentSnapshot);
                                                         } else {
                                                             Log.d(TAG, "No such document");
                                                         }
@@ -385,7 +382,7 @@ public class ProfileFragment extends Fragment {
                                                     }
                                                 }
                                             });
-                                            setCounterData(documentSnapshot);
+                                            setData(documentSnapshot);
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -439,7 +436,7 @@ public class ProfileFragment extends Fragment {
         final TextView textViewDialogLocation = dialogView.findViewById(R.id.id_textViewDialogLocation);
 
         textViewDialogTitle.setText(trapsList.get(position).getTitle());
-        textViewDialogTime.setText(getDate(trapsList.get(position).getTimestamp()));
+        textViewDialogTime.setText(getDate(trapsList.get(position).getTimestamp().toDate()));
         textViewDialogHost.setText(trapsList.get(position).getHost());
         textViewDialogLocation.setText(trapsList.get(position).getLocationAddress());
 
@@ -455,8 +452,22 @@ public class ProfileFragment extends Fragment {
                         dialog.dismiss();
 //                        progressDialog.setMessage("Loading");
 //                        progressDialog.show();
-                        setData(db);
-                    }
+                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    documentSnapshot = task.getResult();
+                                    if (documentSnapshot.exists()) {
+                                        Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                                        setData(documentSnapshot);
+                                    } else {
+                                        Log.d(TAG, "No such document");
+                                    }
+                                } else {
+                                    Log.d(TAG, "get failed with ", task.getException());
+                                }
+                            }
+                        });                    }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
@@ -466,8 +477,22 @@ public class ProfileFragment extends Fragment {
                         dialog.dismiss();
 //                        progressDialog.setMessage("Loading");
 //                        progressDialog.show();
-                        setData(db);
-                    }
+                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    documentSnapshot = task.getResult();
+                                    if (documentSnapshot.exists()) {
+                                        Log.d(TAG, "DocumentSnapshot data: " + documentSnapshot.getData());
+                                        setData(documentSnapshot);
+                                    } else {
+                                        Log.d(TAG, "No such document");
+                                    }
+                                } else {
+                                    Log.d(TAG, "get failed with ", task.getException());
+                                }
+                            }
+                        });                    }
                 })
                 .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -494,7 +519,7 @@ public class ProfileFragment extends Fragment {
                         dialog.dismiss();
 //                        progressDialog.setMessage("Loading");
 //                        progressDialog.show();
-                        setData(db);
+//                        setData(db);
                     }
                 })
                 .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
@@ -503,7 +528,7 @@ public class ProfileFragment extends Fragment {
                         dialog.dismiss();
 //                        progressDialog.setMessage("Loading");
 //                        progressDialog.show();
-                        setData(db);
+//                        setData(db);
                     }
                 })
                 .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
@@ -518,8 +543,7 @@ public class ProfileFragment extends Fragment {
         return builder.create();
     }
 
-    public String getDate(Timestamp timestamp) {
-        Date date = timestamp.toDate();
+    public String getDate(Date date) {
         String month = null;
         int day = date.getDate();
         int year = date.getYear() + 1900;

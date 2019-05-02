@@ -8,11 +8,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -26,11 +28,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private  static  final String TAG = "RecyclerViewAdapter";
     private ArrayList<Trap> trapsList;
+    private FirebaseUser user;
     private FirebaseFirestore db;
     private Context mContext;
 
-    public RecyclerViewAdapter(ArrayList<Trap> trapsList, FirebaseFirestore db, Context mContext) {
+    public RecyclerViewAdapter(ArrayList<Trap> trapsList, FirebaseUser user, FirebaseFirestore db, Context mContext) {
         this.trapsList = trapsList;
+        this.user = user;
         this.db = db;
         this.mContext = mContext;
     }
@@ -57,6 +61,31 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(document.getId().equals(trapsList.get(position).getHost())) {
                                     viewHolder.textViewHost.setText((String) document.get("name"));
+                                    if(document.getId().equals(user.getUid())) {
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.crown);
+                                    }
+                                }
+                            }
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                if(document.getId().equals(trapsList.get(position).getId())) {  //if its this trap
+                                    if (((ArrayList) document.get("commits")).contains(user.getUid())) {    //if commit then green pic
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.check);
+                                    } else if (((ArrayList) document.get("declines")).contains(user.getUid())) {    //if decline then red pic
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.cross);
+                                    }
                                 }
                             }
                         } else {
@@ -69,6 +98,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         viewHolder.textViewLocationName.setText(trapsList.get(position).getLocationName());
         Date date = trapsList.get(position).getTimestamp().toDate();
         viewHolder.textViewTime.setText(getDate(date));
+
 //        viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -89,6 +119,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         TextView textViewHost;
         TextView textViewLocationName;
         TextView textViewTime;
+        ImageView imageViewStatus;
         ConstraintLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
@@ -97,6 +128,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             textViewHost = itemView.findViewById(R.id.id_textViewDialogHost);
             textViewLocationName = itemView.findViewById(R.id.id_textViewDialogLocation);
             textViewTime = itemView.findViewById(R.id.id_textViewDialogTime);
+            imageViewStatus = itemView.findViewById(R.id.id_imageViewStatus);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }

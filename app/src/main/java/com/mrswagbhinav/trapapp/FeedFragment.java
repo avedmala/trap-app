@@ -277,9 +277,9 @@ public class FeedFragment extends Fragment{
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
                                     if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-                                        if(!((ArrayList) document.get("commits")).contains(user.getUid()) && !((ArrayList) document.get("declines")).contains(user.getUid())) {
+                                        //if(!((ArrayList) document.get("commits")).contains(user.getUid()) && !((ArrayList) document.get("declines")).contains(user.getUid())) {     //check if already rsvp
                                             trapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
-                                        }
+                                        //}
                                     }
                                 }
                             }
@@ -298,7 +298,7 @@ public class FeedFragment extends Fragment{
                         }
                         progressDialog.dismiss();
 
-                        adapter = new RecyclerViewAdapter(trapsList, db, getActivity());
+                        adapter = new RecyclerViewAdapter(trapsList, user, db, getActivity());
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                     }
