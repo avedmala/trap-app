@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(MainActivity.this);
         adapter.addFragment(mapFragment, "Map");
 
+        viewPager.setPagingEnabled(false);
         viewPager.setAdapter(adapter);
 
         buttonMap.setOnClickListener(new View.OnClickListener() {

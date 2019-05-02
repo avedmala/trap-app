@@ -44,24 +44,24 @@
             app:layout_constraintTop_toTopOf="@+id/id_imageViewProfile" />
 
         <TextView
-            android:id="@+id/id_textViewFriendCount"
-            android:layout_width="131dp"
+            android:id="@+id/id_textViewTrapCount"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="HostCount"
+            android:text="TrapCount"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@+id/id_textViewBio"
             app:layout_constraintTop_toBottomOf="@+id/id_textViewBio" />
 
         <TextView
-            android:id="@+id/id_textViewTrapCount"
+            android:id="@+id/id_textViewFriendCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:text="TrapCount"
+            android:text="HostCount"
             android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@+id/id_textViewFriendCount"
-            app:layout_constraintTop_toTopOf="@+id/id_textViewFriendCount" />
+            app:layout_constraintStart_toEndOf="@+id/id_textViewTrapCount"
+            app:layout_constraintTop_toTopOf="@+id/id_textViewTrapCount" />
 
         <TextView
             android:id="@+id/id_textViewUsername"
