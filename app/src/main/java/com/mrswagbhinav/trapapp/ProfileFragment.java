@@ -1,6 +1,9 @@
 package com.mrswagbhinav.trapapp;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,14 +23,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,7 +59,14 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,6 +75,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.MODE_PRIVATE;
 
 
 public class ProfileFragment extends Fragment {
@@ -347,9 +361,38 @@ public class ProfileFragment extends Fragment {
         final TextInputLayout editTextBio = dialogView.findViewById(R.id.id_editTextSettingBio);
         final TextInputEditText name = dialogView.findViewById(R.id.id_inputTextName);
         final TextInputEditText bio = dialogView.findViewById(R.id.id_inputTextBio);
+        final Switch switchTheme = dialogView.findViewById(R.id.id_switchTheme);
+
+        try {
+            String info;
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getContext().openFileInput("info.json")));
+            do {
+                info = bufferedReader.readLine();
+            } while (bufferedReader.readLine() != null);
+
+            JSONObject obj = new JSONObject(info);
+            JSONObject object = new JSONObject();
+            String theme = obj.getString("theme");
+            if(theme.equals("DarkTheme")) {
+                switchTheme.setChecked(true);
+            } else {
+                switchTheme.setChecked(false);
+            }
+            OutputStreamWriter writer = new OutputStreamWriter(getContext().openFileOutput("info.json", MODE_PRIVATE));
+            writer.write(object.toString());
+            writer.close();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         name.setText(documentSnapshot.get("name").toString());
         bio.setText(documentSnapshot.get("bio").toString());
+
 
         builder.setView(dialogView)
                 .setTitle("Settings")
@@ -393,6 +436,32 @@ public class ProfileFragment extends Fragment {
                                             Log.w(TAG, "Error writing document", e);
                                         }
                                     });
+                        try {
+                            JSONObject object = new JSONObject();
+                            if(switchTheme.isChecked()) {
+                                getActivity().setTheme(R.style.DarkTheme);
+                                object.put("theme", "DarkTheme");
+                                Log.d(TAG, "theme - DARK");
+                            } else {
+                                getActivity().setTheme(R.style.LightTheme);
+                                object.put("theme", "LightTheme");
+                                Log.d(TAG, "theme - LIGHT");
+                            }
+                            OutputStreamWriter writer = new OutputStreamWriter(getContext().openFileOutput("info.json", MODE_PRIVATE));
+                            writer.write(object.toString());
+                            writer.close();
+                            Intent intent = getActivity().getIntent();
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                            getActivity().finish();
+                            startActivity(intent);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
                     }
                 })

@@ -45,8 +45,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -59,6 +61,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.widget.AbsListView.CHOICE_MODE_MULTIPLE;
 
 public class NewtrapFragment extends Fragment {

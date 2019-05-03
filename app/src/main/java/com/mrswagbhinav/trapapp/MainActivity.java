@@ -32,6 +32,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -57,6 +59,14 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "MainActivity";
 
 
-    @SuppressLint("RestrictedApi")
+    @SuppressLint({"RestrictedApi", "ResourceAsColor"})
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +101,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         buttonFilterFeed = findViewById(R.id.id_buttonFilterFeed);
         buttonMap = findViewById(R.id.id_buttonMap);
         bottomNav = findViewById(R.id.bottom_navigation);
+
+        try {
+            String info;
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(openFileInput("info.json")));
+            do {
+                info = bufferedReader.readLine();
+            } while (bufferedReader.readLine() != null);
+            JSONObject obj = new JSONObject(info);
+
+            JSONObject object = new JSONObject();
+            if(obj.get("theme").equals("DarkTheme")) {
+                setTheme(R.style.DarkTheme);
+                object.put("theme", "DarkTheme");
+                Window window = getWindow();
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+//                bottomNav.setBackgroundResource(R.color.colorPrimaryDark);
+//                bottomNav.setItemTextColor(ColorStateList.valueOf(R.color.colorText));
+//                bottomNav.setItemBackgroundResource(R.color.colorAccent);
+            } else {
+                setTheme(R.style.LightTheme);
+                object.put("theme", "LightTheme");
+                Window window = getWindow();
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                window.setStatusBarColor(getResources().getColor(R.color.lightColorBackground));
+//                bottomNav.setBackgroundResource(R.color.common_google_signin_btn_text_dark_default);
+//                bottomNav.setItemTextColor(ColorStateList.valueOf(R.color.colorBackground));
+//                bottomNav.setItemBackgroundResource(R.color.colorBackground);
+            }
+            OutputStreamWriter writer = new OutputStreamWriter(openFileOutput("info.json", MODE_PRIVATE));
+            writer.write(object.toString());
+            writer.close();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
