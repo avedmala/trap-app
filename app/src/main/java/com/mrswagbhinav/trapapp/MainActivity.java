@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Window window = getWindow();
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+                window.setStatusBarColor(getResources().getColor(R.color.black));
 //                bottomNav.setBackgroundResource(R.color.colorPrimaryDark);
 //                bottomNav.setItemTextColor(ColorStateList.valueOf(R.color.colorText));
 //                bottomNav.setItemBackgroundResource(R.color.colorAccent);

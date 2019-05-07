@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -17,8 +18,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,6 +30,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -38,6 +43,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -60,6 +66,10 @@ public class FeedFragment extends Fragment{
 
     boolean time = true;
     ArrayList<Trap> trapsList = new ArrayList<>();
+    ArrayList<String> yesList = new ArrayList<>();
+    ArrayList<String> noList = new ArrayList<>();
+    ArrayAdapter yesAdapter;
+    ArrayAdapter noAdapter;
     FirebaseFirestore db;
     FirebaseUser user;
 
@@ -137,7 +147,6 @@ public class FeedFragment extends Fragment{
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
 
-
         final TextView textViewDialogTitle = dialogView.findViewById(R.id.id_textViewDialogTitle);
         final TextView textViewDialogTime = dialogView.findViewById(R.id.id_textViewDialogTime);
         final TextView textViewDialogHost = dialogView.findViewById(R.id.id_textViewDialogHost);
@@ -187,52 +196,135 @@ public class FeedFragment extends Fragment{
     }
 
     public AlertDialog createHostDialog(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DarkTheme);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 
+        final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
+        final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
 
-        final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
-        final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
-        final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
-        final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            for(QueryDocumentSnapshot document : task.getResult()) {
+                                if(trapsList.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
+                                    yesList = (ArrayList) document.get("commits");
+                                    noList = (ArrayList) document.get("commits");
+                                }
+                            }
 
-        editTextName.setText(trapsList.get(position).getTitle());
-        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
-        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
-        editTextAddress.setText(trapsList.get(position).getLocationAddress());
+                            ArrayList<String> yesNameArray = new ArrayList<>();
+                            ArrayList<String> noNameArray = new ArrayList<>();
 
-        builder.setView(dialogView)
-                .setTitle("Settings")
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        progressDialog.setMessage("Loading");
-                        progressDialog.show();
-                        setData(db);
-                    }
-                })
-                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        db.collection("traps").document(trapsList.get(position).getId()).delete();
-                        progressDialog.setMessage("Loading");
-                        progressDialog.show();
-                        setData(db);
-                    }
-                })
-                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                            for(String str : yesList)
+                                yesNameArray.add(getName(str));
+
+                            for(String str : noList)
+                                noNameArray.add(getName(str));
+
+                            yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesList);
+                            noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noList);
+
+                            listViewDialog.setAdapter(yesAdapter);
+                        }
                     }
                 });
 
-        builder.setIcon(R.drawable.ic_settings_black_24dp);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if(tab.getText().toString().equals("Yes")) {
+                    listViewDialog.setAdapter(yesAdapter);
+                }
+                else if(tab.getText().toString().equals("No")) {
+                    listViewDialog.setAdapter(noAdapter);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
+        builder.setView(dialogView);
 
         return builder.create();
+    }
+
+//    public AlertDialog createHostDialog(final int position) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+//        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+//        View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
+//
+//
+//        final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
+//        final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
+//        final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
+//        final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
+//
+//        editTextName.setText(trapsList.get(position).getTitle());
+//        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
+//        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
+//        editTextAddress.setText(trapsList.get(position).getLocationAddress());
+//
+//        builder.setView(dialogView)
+//                .setTitle("Settings")
+//                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+//                        setData(db);
+//                    }
+//                })
+//                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                        db.collection("traps").document(trapsList.get(position).getId()).delete();
+//                        progressDialog.setMessage("Loading");
+//                        progressDialog.show();
+//                        setData(db);
+//                    }
+//                })
+//                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                    }
+//                });
+//
+//        builder.setIcon(R.drawable.ic_settings_black_24dp);
+//
+//        return builder.create();
+//    }
+
+    public String getName(final String str) {
+        String id;
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            for(QueryDocumentSnapshot document : task.getResult()) {
+                                if(document.getId().equals(str)) {  //adds all traps u commit to
+                                    //id = (String) document.get("Name");
+                                }
+                            }
+
+                        }
+                    }
+                });
+        return "VK";
     }
 
     public String getDate(Timestamp timestamp) {

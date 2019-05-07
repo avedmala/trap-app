@@ -1,9 +1,6 @@
 package com.mrswagbhinav.trapapp;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -23,12 +20,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -582,7 +577,7 @@ public class ProfileFragment extends Fragment {
     public AlertDialog createHostDialog(final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
-        View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
+        View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
 
         final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
         final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
