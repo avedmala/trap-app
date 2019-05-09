@@ -586,6 +586,7 @@ public class ProfileFragment extends Fragment {
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 
+        final ImageView imageView = dialogView.findViewById(R.id.id_imageViewHostSettings);
         final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
         final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
 
@@ -595,16 +596,16 @@ public class ProfileFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if(task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-                                        allTrapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
-                                    }
-                                }
-                            }
+//                            for (QueryDocumentSnapshot document : task.getResult()) {
+//                                Log.d(TAG, document.getId() + " => " + document.getData());
+//                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+//                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+//                                        allTrapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+//                                    }
+//                                }
+//                            }
                             for(QueryDocumentSnapshot document : task.getResult()) {
-                                if(allTrapsList.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
+                                if(hostArray.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
                                     yesList = (ArrayList) document.get("commits");
                                     noList = (ArrayList) document.get("declines");
                                 }
@@ -645,6 +646,13 @@ public class ProfileFragment extends Fragment {
                     }
                 });
 
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createHostSettingsDialog(position).show();
+            }
+        });
+
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -680,10 +688,10 @@ public class ProfileFragment extends Fragment {
         final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
         final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
 
-        editTextName.setText(trapsList.get(position).getTitle());
-        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
-        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
-        editTextAddress.setText(trapsList.get(position).getLocationAddress());
+        editTextName.setText(hostArray.get(position).getTitle());
+        editTextDate.setText(hostArray.get(position).getTimestamp().toDate().toString());
+        editTextTime.setText(hostArray.get(position).getTimestamp().toDate().toString());
+        editTextAddress.setText(hostArray.get(position).getLocationAddress());
 
         builder.setView(dialogView)
                 .setTitle("Settings")

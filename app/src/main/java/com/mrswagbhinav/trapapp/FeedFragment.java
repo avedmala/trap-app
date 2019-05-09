@@ -21,6 +21,7 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -201,6 +202,7 @@ public class FeedFragment extends Fragment{
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 
+        final ImageView imageView = dialogView.findViewById(R.id.id_imageViewHostSettings);
         final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
         final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
 
@@ -252,6 +254,13 @@ public class FeedFragment extends Fragment{
                     }
                 });
 
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createHostSettingsDialog(position).show();
+            }
+        });
+
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -277,54 +286,54 @@ public class FeedFragment extends Fragment{
         return builder.create();
     }
 
-//    public AlertDialog createHostDialog(final int position) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
-//        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
-//        View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
-//
-//
-//        final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
-//        final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
-//        final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
-//        final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
-//
-//        editTextName.setText(trapsList.get(position).getTitle());
-//        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
-//        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
-//        editTextAddress.setText(trapsList.get(position).getLocationAddress());
-//
-//        builder.setView(dialogView)
-//                .setTitle("Settings")
-//                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                        progressDialog.setMessage("Loading");
-//                        progressDialog.show();
-//                        setData(db);
-//                    }
-//                })
-//                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                        db.collection("traps").document(trapsList.get(position).getId()).delete();
-//                        progressDialog.setMessage("Loading");
-//                        progressDialog.show();
-//                        setData(db);
-//                    }
-//                })
-//                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//
-//        builder.setIcon(R.drawable.ic_settings_black_24dp);
-//
-//        return builder.create();
-//    }
+    public AlertDialog createHostSettingsDialog(final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
+
+
+        final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
+        final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
+        final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
+        final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
+
+        editTextName.setText(trapsList.get(position).getTitle());
+        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
+        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
+        editTextAddress.setText(trapsList.get(position).getLocationAddress());
+
+        builder.setView(dialogView)
+                .setTitle("Settings")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
+                    }
+                })
+                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        db.collection("traps").document(trapsList.get(position).getId()).delete();
+                        progressDialog.setMessage("Loading");
+                        progressDialog.show();
+                        setData(db);
+                    }
+                })
+                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builder.setIcon(R.drawable.ic_settings_black_24dp);
+
+        return builder.create();
+    }
 
     public String getDate(Timestamp timestamp) {
         Date date = timestamp.toDate();
