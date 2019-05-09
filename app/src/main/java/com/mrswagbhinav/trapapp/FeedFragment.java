@@ -24,6 +24,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -212,21 +213,39 @@ public class FeedFragment extends Fragment{
                             for(QueryDocumentSnapshot document : task.getResult()) {
                                 if(trapsList.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
                                     yesList = (ArrayList) document.get("commits");
-                                    noList = (ArrayList) document.get("commits");
+                                    noList = (ArrayList) document.get("declines");
                                 }
                             }
 
-                            ArrayList<String> yesNameArray = new ArrayList<>();
-                            ArrayList<String> noNameArray = new ArrayList<>();
+                            final ArrayList<String> yesNameArray = new ArrayList<>();
+                            final ArrayList<String> noNameArray = new ArrayList<>();
 
-                            for(String str : yesList)
-                                yesNameArray.add(getName(str));
+                            db.collection("users")
+                                    .get()
+                                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                            if(task.isSuccessful()) {
+                                                for(QueryDocumentSnapshot document : task.getResult()) {
+                                                    if(yesList.contains(document.getId())) {
+                                                        yesNameArray.add((String)document.get("name"));
+                                                    }
+                                                    else if(noList.contains(document.getId())) {
+                                                        noNameArray.add((String)document.get("name"));
+                                                    }
+                                                }
 
-                            for(String str : noList)
-                                noNameArray.add(getName(str));
+                                            }
+                                        }
+                                    });
 
-                            yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesList);
-                            noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noList);
+                            if(yesNameArray.isEmpty())
+                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
+                            if(noNameArray.isEmpty())
+                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
+
+                            yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesNameArray);
+                            noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noNameArray);
 
                             listViewDialog.setAdapter(yesAdapter);
                         }
@@ -306,26 +325,6 @@ public class FeedFragment extends Fragment{
 //
 //        return builder.create();
 //    }
-
-    public String getName(final String str) {
-        String id;
-        db.collection("users")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if(task.isSuccessful()) {
-                            for(QueryDocumentSnapshot document : task.getResult()) {
-                                if(document.getId().equals(str)) {  //adds all traps u commit to
-                                    //id = (String) document.get("Name");
-                                }
-                            }
-
-                        }
-                    }
-                });
-        return "VK";
-    }
 
     public String getDate(Timestamp timestamp) {
         Date date = timestamp.toDate();

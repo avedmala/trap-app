@@ -97,10 +97,17 @@ public class ProfileFragment extends Fragment {
     ListAdapter trapAdapter;
     ListAdapter hostAdapter;
     ArrayList<Trap> trapsList = new ArrayList<>();
+    ArrayList<Trap> allTrapsList = new ArrayList<>();
     ArrayList<Trap> hostArray = new ArrayList<>();
     FirebaseFirestore db;
     DocumentReference docRef;
     FirebaseUser user;
+
+    ArrayList<String> yesList = new ArrayList<>();
+    ArrayList<String> noList = new ArrayList<>();
+    ArrayAdapter yesAdapter;
+    ArrayAdapter noAdapter;
+
 
 
     public ProfileFragment() {
@@ -575,6 +582,95 @@ public class ProfileFragment extends Fragment {
     }
 
     public AlertDialog createHostDialog(final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DarkTheme);
+        final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
+
+        final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
+        final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
+
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+                                        allTrapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                    }
+                                }
+                            }
+                            for(QueryDocumentSnapshot document : task.getResult()) {
+                                if(allTrapsList.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
+                                    yesList = (ArrayList) document.get("commits");
+                                    noList = (ArrayList) document.get("declines");
+                                }
+                            }
+
+                            final ArrayList<String> yesNameArray = new ArrayList<>();
+                            final ArrayList<String> noNameArray = new ArrayList<>();
+
+                            db.collection("users")
+                                    .get()
+                                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                            if(task.isSuccessful()) {
+                                                for(QueryDocumentSnapshot document : task.getResult()) {
+                                                    if(yesList.contains(document.getId())) {
+                                                        yesNameArray.add((String)document.get("name"));
+                                                    }
+                                                    else if(noList.contains(document.getId())) {
+                                                        noNameArray.add((String)document.get("name"));
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    });
+
+                            if(yesNameArray.isEmpty())
+                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
+                            if(noNameArray.isEmpty())
+                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
+
+                            yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesNameArray);
+                            noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noNameArray);
+
+                            listViewDialog.setAdapter(yesAdapter);
+                        }
+                    }
+                });
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if(tab.getText().toString().equals("Yes")) {
+                    listViewDialog.setAdapter(yesAdapter);
+                }
+                else if(tab.getText().toString().equals("No")) {
+                    listViewDialog.setAdapter(noAdapter);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
+        builder.setView(dialogView);
+
+        return builder.create();
+    }
+
+    public AlertDialog createHostSettingsDialog(final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
