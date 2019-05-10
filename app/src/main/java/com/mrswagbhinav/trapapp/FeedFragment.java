@@ -1,6 +1,8 @@
 package com.mrswagbhinav.trapapp;
 
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.os.AsyncTask;
@@ -13,6 +15,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,14 +25,18 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,7 +47,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,7 +63,11 @@ import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class FeedFragment extends Fragment{
@@ -280,13 +294,13 @@ public class FeedFragment extends Fragment{
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int pos, long id) {
                 if(tabLayout.getSelectedTabPosition() == 0) {   //yes
-                    createYesNoDialog().show();
+                    createYesNoDialog(pos, 0, position).show();
                 }
                 else if(tabLayout.getSelectedTabPosition() == 1) {   //no
-                    createYesNoDialog().show();
+                    createYesNoDialog(pos, 1, position).show();
                 }
                 else if(tabLayout.getSelectedTabPosition() == 2) {   //no reply
-                    createYesNoDialog().show();
+                    createYesNoDialog(pos, 2, position).show();
                 }
             }
         });
@@ -345,26 +359,158 @@ public class FeedFragment extends Fragment{
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.hostsettings_dialog, null);
 
-
         final EditText editTextName = dialogView.findViewById(R.id.id_editTextName);
         final EditText editTextDate = dialogView.findViewById(R.id.id_editTextDate);
         final EditText editTextTime = dialogView.findViewById(R.id.id_editTextTime);
         final AutoCompleteTextView editTextAddress = dialogView.findViewById(R.id.id_editTextAddress);
 
         editTextName.setText(trapsList.get(position).getTitle());
-        editTextDate.setText(trapsList.get(position).getTimestamp().toDate().toString());
-        editTextTime.setText(trapsList.get(position).getTimestamp().toDate().toString());
+        editTextDate.setText(getDateNoTime(trapsList.get(position).getTimestamp()));
+        editTextTime.setText(getTime(trapsList.get(position).getTimestamp()));
         editTextAddress.setText(trapsList.get(position).getLocationAddress());
+
+
+        final Calendar myCalendar = Calendar.getInstance();
+        final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, monthOfYear);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                String myFormat = "MM/dd/yy"; //In which you need put here
+                SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+                editTextDate.setText(sdf.format(myCalendar.getTime()));
+            }
+
+        };
+        editTextDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Date trapDate = trapsList.get(position).getTimestamp().toDate();
+                new DatePickerDialog(getActivity(), date, trapDate.getYear() + 1900, trapDate.getMonth(), trapDate.getDate()).show();
+            }
+        });
+        editTextTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Date trapDate = trapsList.get(position).getTimestamp().toDate();
+                int hour = trapDate.getHours();
+                int minute = trapDate.getMinutes();
+                TimePickerDialog mTimePicker;
+                mTimePicker = new TimePickerDialog(getActivity(), new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                        String time = "";
+                        if(selectedHour < 10)
+                            time += "0"+ selectedHour + ":";
+                        else
+                            time += selectedHour + ":";
+                        if(selectedMinute < 10)
+                            time += "0" + selectedMinute;
+                        else
+                            time += selectedMinute;
+                        editTextTime.setText(time);
+                    }
+                }, hour, minute, false);
+                mTimePicker.setTitle("Select Time");
+                mTimePicker.show();
+            }
+        });
+
+        editTextAddress.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(s.length() % 4 == 0) {       //doesnt check all the time to keep performance nice
+                    String URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" + s + "&inputtype=textquery&fields=name&key=" + API_KEY;
+                    URL = URL.replace(" ", "%20");
+
+                    try {
+                        ArrayList<String> locations = new getLocations().execute(URL).get();
+                        editTextAddress.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, locations));
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         builder.setView(dialogView)
                 .setTitle("Settings")
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        progressDialog.setMessage("Loading");
-                        progressDialog.show();
-                        setData(db);
+                        if (editTextTime.getText().toString() != "" && editTextDate.getText().toString() != "" && editTextName.getText().toString().length() > 0) {
+                            if(editTextAddress.getText().toString() != "" || ((MainActivity)getActivity()).latitude != null) {
+
+                                Map<String, Object> trap = new HashMap<>();
+
+                                String input = editTextAddress.getText().toString();
+                                String URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + input + "&inputtype=textquery&fields=formatted_address,name,geometry&key=" + API_KEY;
+                                URL = URL.replace(" ", "%20");
+
+                                int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
+                                int day = Integer.valueOf(editTextDate.getText().toString().substring(3, 5));
+                                int month = Integer.valueOf(editTextDate.getText().toString().substring(0, 2)) - 1;
+                                int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0, 2));
+                                int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
+
+                                Date date = new Date(year, month, day, hrs, min);
+
+                                Timestamp timestamp = new Timestamp(date);
+
+                                try {
+                                    if (new getLocationName().execute(URL).get() != null) {
+                                        String lat = new getLat().execute(URL).get();
+                                        String lng = new getLng().execute(URL).get();
+                                        GeoPoint geoPoint = new GeoPoint(Double.valueOf(lat), Double.valueOf(lng));
+
+                                        trap.put("title", editTextName.getText().toString());
+                                        trap.put("time", timestamp);
+                                        trap.put("location_name", new getLocationName().execute(URL).get());
+                                        trap.put("location_address", new getLocationAddress().execute(URL).get());
+                                        trap.put("geopoint", geoPoint);
+
+                                        db.collection("traps").document(trapsList.get(position).getId())
+                                                .set(trap, SetOptions.merge())
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                        Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        Log.w(TAG, "Error writing document", e);
+                                                    }
+                                                });
+                                    } else {
+                                        Toast.makeText(getActivity(), "Invalid Address", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            progressDialog.setMessage("Loading");
+                            progressDialog.show();
+                            setData(db);
+                        }
+                        else {
+                            Toast.makeText(getContext(), "Fill out all Fields!", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
@@ -389,13 +535,22 @@ public class FeedFragment extends Fragment{
         return builder.create();
     }
 
-    public AlertDialog createYesNoDialog() {
+    public AlertDialog createYesNoDialog(final int userPos, final int tab, final int trapPos) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         builder
                 .setTitle("Delete?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        if(tab == 0){
+                            db.collection("traps").document(trapsList.get(trapPos).getId()).update("commits", FieldValue.arrayRemove(yesList.get(userPos)));
+                            db.collection("traps").document(trapsList.get(trapPos).getId()).update("invites", FieldValue.arrayRemove(yesList.get(userPos)));
+                        } else if(tab == 1){
+                            db.collection("traps").document(trapsList.get(trapPos).getId()).update("declines", FieldValue.arrayRemove(noList.get(userPos)));
+                            db.collection("traps").document(trapsList.get(trapPos).getId()).update("invites", FieldValue.arrayRemove(noList.get(userPos)));
+                        } else if(tab == 2){
+                            db.collection("traps").document(trapsList.get(trapPos).getId()).update("invites", FieldValue.arrayRemove(noReplyList.get(userPos)));
+                        }
                         dialog.dismiss();
                     }
                 })
@@ -457,6 +612,18 @@ public class FeedFragment extends Fragment{
         }
 
         return month+" "+day+", "+year+" at "+time;
+    }
+
+    public String getDateNoTime(Timestamp timestamp) {
+        Date date = timestamp.toDate();
+        DateFormat format = new SimpleDateFormat("MM/dd/yy");
+        return format.format(date);
+    }
+
+    public String getTime(Timestamp timestamp) {
+        Date date = timestamp.toDate();
+        DateFormat format = new SimpleDateFormat("HH:mm");
+        return format.format(date);
     }
 
     public void setData(final FirebaseFirestore db) {
@@ -563,13 +730,12 @@ public class FeedFragment extends Fragment{
         }
     }
 
-    private class getCurrentAddress extends AsyncTask<String, Void, String> {
+    private class getLocationAddress extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
-            String currentAddress = null;
+            String locationAddress = null;
             String s = null;
             JSONObject jsonObject;
-
             try {
                 URL url = new URL(params[0]);
                 URLConnection urlConnection = url.openConnection();
@@ -582,7 +748,7 @@ public class FeedFragment extends Fragment{
                 s = s.replace("null", "");
 
                 jsonObject = new JSONObject(s);
-                currentAddress = jsonObject.getJSONArray("results").getJSONObject(0).getString("formatted_address");
+                locationAddress = jsonObject.getJSONArray("candidates").getJSONObject(0).getString("formatted_address");
 
 
             } catch (MalformedURLException e) {
@@ -593,9 +759,146 @@ public class FeedFragment extends Fragment{
                 e.printStackTrace();
             }
 
-            return currentAddress;
+            return locationAddress;
         }
+
     }//getAddress
+
+    private class getLocations extends AsyncTask<String, Void, ArrayList<String>> {
+        @Override
+        protected ArrayList<String> doInBackground(String... params) {
+            String locationName;
+            String s = null;
+            ArrayList<String> locations = new ArrayList<>();
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                JSONArray predictions = new JSONArray(jsonObject.getString("predictions"));
+
+                for(int i = 0; i < predictions.length(); i++) {
+                    locationName = predictions.getJSONObject(i).getString("description");
+                    locations.add(locationName);
+                    Log.d(TAG, locationName);
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return locations;
+        }
+    }
+
+    private class getLocationName extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String locationName = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                locationName = jsonObject.getJSONArray("candidates").getJSONObject(0).getString("name");
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return locationName;
+        }
+
+    }//getName
+
+    private class getLat extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String lat = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                lat = String.valueOf(jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat"));
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return lat;
+        }
+    }//getLat
+
+    private class getLng extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String lng = null;
+            String s = null;
+            String temp;
+            JSONObject jsonObject;
+            try {
+                URL url = new URL(params[0]);
+                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                while((temp = bufferedReader.readLine()) != null){
+                    s += temp;
+                }
+                s = s.replace("null", "");
+
+                jsonObject = new JSONObject(s);
+                lng = String.valueOf(jsonObject.getJSONArray("candidates").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng"));
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return lng;
+        }
+    }//getLng
 
     private class getDistance extends AsyncTask<String, Void, Integer> {
         @Override

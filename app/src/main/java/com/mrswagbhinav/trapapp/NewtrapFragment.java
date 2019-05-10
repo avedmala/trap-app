@@ -201,7 +201,7 @@ public class NewtrapFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                if (editTextTime.getText().toString() != "" && editTextDate.getText().toString() != "" && editTextName.getText().toString() != "" && arrayListInvite.size() > 0) {
+                if (editTextTime.getText().toString() != "" && editTextDate.getText().toString() != "" && editTextName.getText().toString().length() > 0 && arrayListInvite.size() > 0) {
                     if(editTextAddress.getText().toString() != "" || ((MainActivity)getActivity()).latitude != null) {
 
                         dialog = new ProgressDialog(getActivity());
@@ -219,7 +219,7 @@ public class NewtrapFragment extends Fragment {
                         int year = Integer.valueOf(editTextDate.getText().toString().substring(6)) + 100;
                         int day = Integer.valueOf(editTextDate.getText().toString().substring(3, 5));
                         int month = Integer.valueOf(editTextDate.getText().toString().substring(0, 2)) - 1;
-                        int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0, 2)) - 1;
+                        int hrs = Integer.valueOf(editTextTime.getText().toString().substring(0, 2));
                         int min = Integer.valueOf(editTextTime.getText().toString().substring(3));
 
                         Date date = new Date(year, month, day, hrs, min);

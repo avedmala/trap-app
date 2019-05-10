@@ -53,16 +53,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/id_editTextTime" />
 
-    <ImageView
-        android:id="@+id/id_imageViewInvite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:dropDownWidth="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_editTextAddress"
-        app:srcCompat="@drawable/ic_person_black_24dp" />
-
 </android.support.constraint.ConstraintLayout>

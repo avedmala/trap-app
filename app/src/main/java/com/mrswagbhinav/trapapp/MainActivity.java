@@ -310,8 +310,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
 
-//        googleMap.getUiSettings().setMapToolbarEnabled(true);
-//        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
 //        googleMap.getUiSettings().setZoomGesturesEnabled(true);
 //        googleMap.getUiSettings().setTiltGesturesEnabled(true);
 
