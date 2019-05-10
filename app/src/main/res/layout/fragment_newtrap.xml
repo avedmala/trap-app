@@ -72,6 +72,7 @@
         android:layout_marginTop="32dp"
         android:text="submit"
         android:textColor="@color/colorPrimary"
+        android:background="@color/colorText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/id_imageViewInvite" />

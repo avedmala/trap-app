@@ -4,7 +4,9 @@ import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -100,8 +102,6 @@ public class FeedFragment extends Fragment{
     FirebaseFirestore db;
     FirebaseUser user;
 
-
-
     public FeedFragment(){
         // Required empty public constructor
     }
@@ -169,25 +169,37 @@ public class FeedFragment extends Fragment{
         return fragmentView;
     }
 
-    public AlertDialog createFeedDialog(int position) {
+    public AlertDialog createFeedDialog(final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.feed_dialog, null);
 
-        final TextView textViewDialogTitle = dialogView.findViewById(R.id.id_textViewDialogTitle);
-        final TextView textViewDialogTime = dialogView.findViewById(R.id.id_textViewDialogTime);
-        final TextView textViewDialogHost = dialogView.findViewById(R.id.id_textViewDialogHost);
-        final TextView textViewDialogLocation = dialogView.findViewById(R.id.id_textViewDialogLocation);
+        final TextView textViewDirections = dialogView.findViewById(R.id.id_textViewDirections);
+        final ImageView imageViewDirections = dialogView.findViewById(R.id.id_imageViewDirections);
 
-        textViewDialogTitle.setText(trapsList.get(position).getTitle());
-        textViewDialogTime.setText(getDate(trapsList.get(position).getTimestamp()));
-        textViewDialogHost.setText(trapsList.get(position).getHost());
-        textViewDialogLocation.setText(trapsList.get(position).getLocationAddress());
+        String yourAddress = trapsList.get(position).getLocationAddress();
+        String strUri = "http://maps.google.co.in/maps?q=" + yourAddress;
+        final Intent mapIntent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(strUri));
+        mapIntent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+
+        imageViewDirections.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mapIntent);
+            }
+        });
+
+        textViewDirections.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mapIntent);
+            }
+        });
 
         final DocumentReference trapRef = db.collection("traps").document(trapsList.get(position).getId());
 
         builder.setView(dialogView)
-                .setTitle("Settings")
+                .setTitle(trapsList.get(position).getTitle())
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -217,8 +229,6 @@ public class FeedFragment extends Fragment{
                     }
                 });
 
-        builder.setTitle(trapsList.get(position).getTitle());
-
         return builder.create();
     }
 
@@ -227,7 +237,6 @@ public class FeedFragment extends Fragment{
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 
-        final ImageView imageView = dialogView.findViewById(R.id.id_imageViewHostSettings);
         final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
         final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
 
@@ -305,13 +314,6 @@ public class FeedFragment extends Fragment{
             }
         });
 
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                createHostSettingsDialog(position).show();
-            }
-        });
-
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -338,10 +340,10 @@ public class FeedFragment extends Fragment{
         builder.setView(dialogView)
                 .setTitle("Invite List")
                 .setIcon(R.drawable.ic_person_black_24dp)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                        createHostSettingsDialog(position).show();
                     }
                 })
                 .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
@@ -554,7 +556,7 @@ public class FeedFragment extends Fragment{
                         dialog.dismiss();
                     }
                 })
-                .setNeutralButton("No", new DialogInterface.OnClickListener() {
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
@@ -707,8 +709,7 @@ public class FeedFragment extends Fragment{
         }
 
         @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
-                                   RecyclerView.State state) {
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             outRect.bottom = verticalSpaceHeight;
         }
     }
