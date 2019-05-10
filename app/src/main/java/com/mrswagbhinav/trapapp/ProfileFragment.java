@@ -105,10 +105,16 @@ public class ProfileFragment extends Fragment {
 
     ArrayList<String> yesList = new ArrayList<>();
     ArrayList<String> noList = new ArrayList<>();
+    ArrayList<String> noReplyList = new ArrayList<>();
+
+    ArrayList<String> yesNameArray = new ArrayList<>();
+    ArrayList<String> noNameArray = new ArrayList<>();
+    ArrayList<String> noReplyArray = new ArrayList<>();
+
+
     ArrayAdapter yesAdapter;
     ArrayAdapter noAdapter;
-
-
+    ArrayAdapter noReplyAdapter;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -582,7 +588,7 @@ public class ProfileFragment extends Fragment {
     }
 
     public AlertDialog createHostDialog(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DarkTheme);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
         final LayoutInflater dialogInflater = requireActivity().getLayoutInflater();
         View dialogView = dialogInflater.inflate(R.layout.host_dialog, null);
 
@@ -590,29 +596,34 @@ public class ProfileFragment extends Fragment {
         final TabLayout tabLayout = dialogView.findViewById(R.id.id_dialogTabs);
         final ListView listViewDialog = dialogView.findViewById(R.id.id_listViewDialog);
 
+        yesNameArray = new ArrayList<>();
+        noNameArray = new ArrayList<>();
+        noReplyArray = new ArrayList<>();
+
         db.collection("traps")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if(task.isSuccessful()) {
-//                            for (QueryDocumentSnapshot document : task.getResult()) {
-//                                Log.d(TAG, document.getId() + " => " + document.getData());
-//                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
-//                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
-//                                        allTrapsList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
-//                                    }
-//                                }
-//                            }
                             for(QueryDocumentSnapshot document : task.getResult()) {
                                 if(hostArray.get(position).getId().equals(document.getId())) {  //adds all traps u commit to
                                     yesList = (ArrayList) document.get("commits");
                                     noList = (ArrayList) document.get("declines");
+                                    noReplyList = (ArrayList) document.get("invites");
                                 }
                             }
 
-                            final ArrayList<String> yesNameArray = new ArrayList<>();
-                            final ArrayList<String> noNameArray = new ArrayList<>();
+                            for(String str : yesList) {
+                                if(noReplyList.contains(str)) {
+                                    noReplyList.remove(str);
+                                }
+                            }
+                            for(String str : noList) {
+                                if(noReplyList.contains(str)) {
+                                    noReplyList.remove(str);
+                                }
+                            }
 
                             db.collection("users")
                                     .get()
@@ -627,24 +638,38 @@ public class ProfileFragment extends Fragment {
                                                     else if(noList.contains(document.getId())) {
                                                         noNameArray.add((String)document.get("name"));
                                                     }
+                                                    else if(noReplyList.contains(document.getId())) {
+                                                        noReplyArray.add((String)document.get("name"));
+                                                    }
                                                 }
 
                                             }
                                         }
                                     });
 
-                            if(yesNameArray.isEmpty())
-                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
-                            if(noNameArray.isEmpty())
-                                Toast.makeText(getContext(), "Nobody :(", Toast.LENGTH_SHORT).show();
-
                             yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesNameArray);
                             noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noNameArray);
+                            noReplyAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noReplyArray);
 
                             listViewDialog.setAdapter(yesAdapter);
                         }
                     }
                 });
+
+        listViewDialog.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int pos, long id) {
+                if(tabLayout.getSelectedTabPosition() == 0) {   //yes
+                    createYesNoDialog().show();
+                }
+                else if(tabLayout.getSelectedTabPosition() == 1) {   //no
+                    createYesNoDialog().show();
+                }
+                else if(tabLayout.getSelectedTabPosition() == 2) {   //no reply
+                    createYesNoDialog().show();
+                }
+            }
+        });
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -662,6 +687,9 @@ public class ProfileFragment extends Fragment {
                 else if(tab.getText().toString().equals("No")) {
                     listViewDialog.setAdapter(noAdapter);
                 }
+                else if(tab.getText().toString().equals("No Reply")) {
+                    listViewDialog.setAdapter(noReplyAdapter);
+                }
             }
 
             @Override
@@ -673,7 +701,22 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        builder.setView(dialogView);
+        builder.setView(dialogView)
+                .setTitle("Invite List")
+                .setIcon(R.drawable.ic_person_black_24dp)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
+                    }
+                })
+                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
 
         return builder.create();
     }
@@ -752,6 +795,26 @@ public class ProfileFragment extends Fragment {
                 });
 
         builder.setIcon(R.drawable.ic_settings_black_24dp);
+
+        return builder.create();
+    }
+
+    public AlertDialog createYesNoDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_MaterialComponents_Dialog_Alert);
+        builder
+                .setTitle("Delete?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setNeutralButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
 
         return builder.create();
     }

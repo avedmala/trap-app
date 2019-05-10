@@ -34,8 +34,13 @@
 
         <android.support.design.widget.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:text="No" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Reply"/>
 
     </android.support.design.widget.TabLayout>
 
