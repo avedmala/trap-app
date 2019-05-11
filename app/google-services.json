@@ -15,11 +15,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "501116635490-70m0i906dgjaffk0mgl7k8n9vhqgii9q.apps.googleusercontent.com",
+          "client_id": "501116635490-7vjfuosrv8pb6frsh29bujkt6ohf4c55.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.mrswagbhinav.trapapp",
             "certificate_hash": "61fb1e9c95cf9a5a35fb0c167344046d4213b919"
+          }
+        },
+        {
+          "client_id": "501116635490-5u6hs2jvjl72be42tc2fj6b1i7m9d0n1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mrswagbhinav.trapapp",
+            "certificate_hash": "6d4ccdf62839d53b8d540173f599a6256bae02dc"
           }
         },
         {
