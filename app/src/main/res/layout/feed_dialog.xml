@@ -23,9 +23,10 @@
             android:id="@+id/id_textViewDirections"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/ubuntu_bold"
             android:text="Directions"
-            android:textStyle="bold"
-            android:layout_gravity="center"/>
+            android:textStyle="bold" />
 
     </LinearLayout>
 

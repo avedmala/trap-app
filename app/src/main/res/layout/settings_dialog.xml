@@ -17,6 +17,7 @@
             android:id="@+id/id_inputTextName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/ubuntu"
             android:hint="Name"
             android:inputType="textPersonName" />
 
@@ -32,6 +33,7 @@
             android:id="@+id/id_inputTextBio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/ubuntu"
             android:hint="Bio"
             android:inputType="textShortMessage" />
 
@@ -48,13 +50,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:text="Theme"/>
+            android:fontFamily="@font/ubuntu"
+            android:text="Theme"
+            android:textSize="18sp" />
 
         <Switch
             android:id="@+id/id_switchTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/ubuntu"
             android:showText="true"
             android:textOff="Light"
             android:textOn="Dark" />

@@ -7,10 +7,6 @@
             <solid
                 android:color="@color/colorAccent"/>
 
-            <stroke
-                android:color="@color/colorPrimary"
-                android:width="2dp" />
-
             <corners
                 android:radius="10dp" />
         </shape>
