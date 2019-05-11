@@ -30,10 +30,6 @@ public class Trap {
         return title;
     }
 
-    public void setTitle(String str) {
-        title = str;
-    }
-
     public String getHost() {
         return host;
     }
@@ -42,24 +38,12 @@ public class Trap {
         return locationName;
     }
 
-    public void setLocationName(String str) {
-        locationName = str;
-    }
-
     public String getLocationAddress() {
         return locationAddress;
     }
 
-    public void setLocationAddress(String str) {
-        locationAddress = str;
-    }
-
     public Timestamp getTimestamp() {
         return timestamp;
-    }
-
-    public void setTimestamp(Timestamp ts) {
-        timestamp = ts;
     }
 
     public Double getLat() {

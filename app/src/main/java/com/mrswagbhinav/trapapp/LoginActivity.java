@@ -59,8 +59,6 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin = findViewById(R.id.id_buttonLogin);
         imageViewLogo = findViewById(R.id.id_imageViewLogo);
 
-        //imageViewLogo.setImageResource();
-
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(default_web_client_id)
                 .requestEmail()
