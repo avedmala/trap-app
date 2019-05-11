@@ -10,21 +10,24 @@
         android:id="@+id/id_buttonLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="256dp"
+        android:layout_marginTop="100dp"
         android:text="Log In"
         android:textColor="@color/colorPrimary"
+        android:background="@drawable/roundbutton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/id_imageViewLogo" />
 
     <ImageView
         android:id="@+id/id_imageViewLogo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="128dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="124dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/login"
         tools:src="@tools:sample/avatars" />
 
 </android.support.constraint.ConstraintLayout>

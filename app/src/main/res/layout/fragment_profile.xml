@@ -27,7 +27,6 @@
             android:layout_marginTop="16dp"
             android:fontFamily="sans-serif"
             android:text="Name"
-            android:textColor="@color/colorText"
             android:textAllCaps="false"
             android:textSize="24sp"
             android:textStyle="bold"

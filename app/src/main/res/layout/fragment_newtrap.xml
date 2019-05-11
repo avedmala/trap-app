@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:padding="10dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -10,6 +11,7 @@
         android:id="@+id/id_editTextName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
         android:ems="10"
         android:hint="Title"
@@ -21,6 +23,7 @@
         android:id="@+id/id_editTextDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
         android:ems="10"
         android:focusable="false"
@@ -33,6 +36,7 @@
         android:id="@+id/id_editTextTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
         android:ems="10"
         android:focusable="false"
@@ -45,6 +49,7 @@
         android:id="@+id/id_editTextAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="Address"
@@ -57,13 +62,12 @@
         android:id="@+id/id_imageViewInvite"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:dropDownWidth="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"
-        app:srcCompat="@drawable/ic_person_black_24dp" />
+        app:layout_constraintBottom_toBottomOf="@+id/textView5"
+        app:layout_constraintEnd_toEndOf="@+id/id_switchLocation"
+        app:layout_constraintStart_toStartOf="@+id/id_switchLocation"
+        app:layout_constraintTop_toTopOf="@+id/textView5"
+        app:srcCompat="@drawable/ic_person_add_black_24dp" />
 
     <Button
         android:id="@+id/id_buttonSubmit"
@@ -72,7 +76,7 @@
         android:layout_marginTop="32dp"
         android:text="submit"
         android:textColor="@color/colorPrimary"
-        android:background="@color/colorText"
+        android:background="@drawable/roundbutton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/id_imageViewInvite" />
@@ -93,12 +97,62 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="8dp"
         android:text="Use Current Location"
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_switchLocation"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageView2"
         app:layout_constraintTop_toTopOf="@+id/id_switchLocation" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/id_editTextTime"
+        app:layout_constraintEnd_toStartOf="@+id/id_editTextTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/id_editTextTime"
+        app:srcCompat="@drawable/ic_access_time_black_24dp" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/id_editTextAddress"
+        app:layout_constraintEnd_toStartOf="@+id/id_editTextAddress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/id_editTextAddress"
+        app:srcCompat="@drawable/ic_location_city_black_24dp" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/id_editTextDate"
+        app:layout_constraintEnd_toStartOf="@+id/id_editTextDate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/id_editTextDate"
+        app:srcCompat="@drawable/ic_today_black_24dp" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/id_editTextName"
+        app:layout_constraintEnd_toStartOf="@+id/id_editTextName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/id_editTextName"
+        app:srcCompat="@drawable/ic_title_black_24dp" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@android:color/darker_gray"
+        android:text="Invite List"
+        app:layout_constraintStart_toStartOf="@+id/textView3"
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
 </android.support.constraint.ConstraintLayout>

@@ -195,8 +195,7 @@ public class LoginActivity extends AppCompatActivity {
         Map<String, Object> user = new HashMap<>();
         user.put("name", currentUser.getDisplayName());
         user.put("email", currentUser.getEmail());
-        user.put("bio", "sample bio");
-//        user.put("traps", new ArrayList<String>());
+        user.put("bio", "default bio");
 
         // Add a new document with a generated ID
         db.collection("users").document(currentUser.getUid())

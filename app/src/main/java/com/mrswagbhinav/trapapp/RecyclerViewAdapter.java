@@ -62,7 +62,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                                 if(document.getId().equals(trapsList.get(position).getHost())) {
                                     viewHolder.textViewHost.setText((String) document.get("name"));
                                     if(document.getId().equals(user.getUid())) {
-                                        viewHolder.imageViewStatus.setImageResource(R.drawable.crown);
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.ic_send_black_24dp);
                                     }
                                 }
                             }
@@ -81,10 +81,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if(document.getId().equals(trapsList.get(position).getId())) {  //if its this trap
+                                    if (((ArrayList) document.get("invites")).contains(user.getUid())) {
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.ic_check_box_outline_blank_black_24dp);
+                                    }
                                     if (((ArrayList) document.get("commits")).contains(user.getUid())) {    //if commit then green pic
-                                        viewHolder.imageViewStatus.setImageResource(R.drawable.check);
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.ic_check_box_black_24dp);
                                     } else if (((ArrayList) document.get("declines")).contains(user.getUid())) {    //if decline then red pic
-                                        viewHolder.imageViewStatus.setImageResource(R.drawable.cross);
+                                        viewHolder.imageViewStatus.setImageResource(R.drawable.ic_indeterminate_check_box_black_24dp);
                                     }
                                 }
                             }
