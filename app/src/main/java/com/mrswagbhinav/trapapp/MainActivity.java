@@ -87,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Double longitude;
     Double latitude;
 
+    SupportMapFragment mapFragment;
+
     boolean map = false;
 
     private static final String TAG = "MainActivity";
@@ -215,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         adapter.addFragment(new NewtrapFragment(), "Newtrap");
         adapter.addFragment(new ProfileFragment(), "Profile");
 
-        final SupportMapFragment mapFragment = new SupportMapFragment();
+        mapFragment = new SupportMapFragment();
         mapFragment.getMapAsync(MainActivity.this);
         adapter.addFragment(mapFragment, "Map");
 

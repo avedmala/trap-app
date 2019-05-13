@@ -902,7 +902,8 @@ public class ProfileFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        db.collection("traps").document(trapsList.get(position).getId()).delete();
+                        db.collection("traps").document(hostArray.get(position).getId()).delete();
+
                         //progressDialog.setMessage("Loading");
                         //progressDialog.show();
                         //setData(db);
