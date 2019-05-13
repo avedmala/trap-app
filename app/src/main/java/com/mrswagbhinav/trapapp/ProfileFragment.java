@@ -1011,19 +1011,15 @@ public class ProfileFragment extends Fragment {
     }
 
     private void sortTime(ArrayList<Trap> traps) {
-        for(int i = 0; i < traps.size()-1; i++) {
-            int index = i;
-            for(int j = i+1; j < traps.size(); j++) {
-
-                Timestamp timeJ = traps.get(j).getTimestamp();
-                Timestamp timeI = traps.get(i).getTimestamp();
-                if(timeJ.compareTo(timeI) < 0) { //J < I
-                    index = j;
+        Trap temp;
+        for(int i = traps.size()-1; i > 0; i--) {
+            for(int j = 0; j < i; j++) {
+                if(traps.get(j).getTimestamp().compareTo(traps.get(j+1).getTimestamp()) > 0) {
+                    temp = traps.get(j);
+                    traps.set(j, traps.get(j+1));
+                    traps.set(j+1, temp);
                 }
             }
-            Trap temp = traps.get(index);
-            traps.set(index, traps.get(i));
-            traps.set(i, temp);
         }
     }
 

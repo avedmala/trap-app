@@ -623,24 +623,24 @@ public class FeedFragment extends Fragment{
             String lat = String.valueOf(((MainActivity)getActivity()).latitude);
             String lng = String.valueOf(((MainActivity)getActivity()).longitude);
 
-            for(int i = 0; i < traps.size()-1; i++) {
-                int index = i;
-                for(int j = i+1; j < traps.size(); j++) {
+            Trap temp;
+
+            for(int i = traps.size()-1; i > 0; i--) {
+                for(int j = 0; j < i; j++) {
 
                     String destinationAddressJ = traps.get(j).getLocationAddress().replace(" ", "%20");
-                    String destinationAddressI = traps.get(index).getLocationAddress().replace(" ", "%20");
+                    String destinationAddressI = traps.get(j+1).getLocationAddress().replace(" ", "%20");
                     String distanceURLJ = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressJ+"&mode=driving&units=imperial&language=en&key="+API_KEY;
                     String distanceURLI = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+lat+","+lng+"&destinations="+destinationAddressI+"&mode=driving&units=imperial&language=en&key="+API_KEY;
                     int distanceJ = new getDistance().execute(distanceURLJ).get();
                     int distanceI = new getDistance().execute(distanceURLI).get();
 
-                    if(distanceJ < distanceI) {
-                        index = j;
+                    if(distanceJ > distanceI) {
+                        temp = traps.get(j);
+                        traps.set(j, traps.get(j+1));
+                        traps.set(j+1, temp);
                     }
                 }
-                Trap temp = traps.get(index);
-                traps.set(index, traps.get(i));
-                traps.set(i, temp);
             }
 
         } catch (ExecutionException e) {
@@ -664,20 +664,33 @@ public class FeedFragment extends Fragment{
         }
     }
 
-    private void sortTime(ArrayList<Trap> traps) {
-        for(int i = 0; i < traps.size()-1; i++) {
-            int index = i;
-            for(int j = i+1; j < traps.size(); j++) {
+//    private void sortTime(ArrayList<Trap> traps) {
+//        for(int i = 0; i < traps.size()-1; i++) {
+//            int index = i;
+//            for(int j = i+1; j < traps.size(); j++) {
+//
+//                Timestamp timeJ = traps.get(j).getTimestamp();
+//                Timestamp timeI = traps.get(i).getTimestamp();
+//                if(timeJ.compareTo(timeI) < 0) { //J < I
+//                    index = j;
+//                }
+//            }
+//            Trap temp = traps.get(index);
+//            traps.set(index, traps.get(i));
+//            traps.set(i, temp);
+//        }
+//    }
 
-                Timestamp timeJ = traps.get(j).getTimestamp();
-                Timestamp timeI = traps.get(i).getTimestamp();
-                if(timeJ.compareTo(timeI) < 0) { //J < I
-                    index = j;
+    private void sortTime(ArrayList<Trap> traps) {
+        Trap temp;
+        for(int i = traps.size()-1; i > 0; i--) {
+            for(int j = 0; j < i; j++) {
+                if(traps.get(j).getTimestamp().compareTo(traps.get(j+1).getTimestamp()) > 0) {
+                    temp = traps.get(j);
+                    traps.set(j, traps.get(j+1));
+                    traps.set(j+1, temp);
                 }
             }
-            Trap temp = traps.get(index);
-            traps.set(index, traps.get(i));
-            traps.set(i, temp);
         }
     }
 
