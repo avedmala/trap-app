@@ -24,6 +24,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -133,6 +135,7 @@ public class FeedFragment extends Fragment implements OnMapReadyCallback{
         ((MainActivity)getActivity()).buttonFilterFeed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ((MainActivity)getActivity()).buttonFilterFeed.startAnimation(((MainActivity)getActivity()).scaleAnimation);
                 if(time) {
                     progressDialog.setMessage("Sorting by Distance");
                     progressDialog.show();
@@ -948,7 +951,7 @@ public class FeedFragment extends Fragment implements OnMapReadyCallback{
                 });
         try {
             googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude)));
-            googleMap.setMinZoomPreference(8);
+            googleMap.setMinZoomPreference(10);
             googleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude))
                     .title("Current Position")

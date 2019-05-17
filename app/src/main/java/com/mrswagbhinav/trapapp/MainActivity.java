@@ -35,6 +35,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -74,6 +76,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    ScaleAnimation scaleAnimation = new ScaleAnimation(0.8f, 1.2f, 0.8f, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
     FirebaseUser user;
     FirebaseFirestore db;
@@ -230,9 +234,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         viewPager.setPagingEnabled(false);
         viewPager.setAdapter(adapter);
 
+        scaleAnimation.setDuration(200);
         buttonMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                buttonMap.startAnimation(scaleAnimation);
                 if(map) {
                     viewPager.setCurrentItem(0, false);
                     buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);

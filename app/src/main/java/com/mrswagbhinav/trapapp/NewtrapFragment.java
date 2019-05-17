@@ -91,7 +91,7 @@ public class NewtrapFragment extends Fragment {
         final AutoCompleteTextView editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
         final ImageView imageViewInvite = fragmentView.findViewById(R.id.id_imageViewInvite);
         final Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
-        Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
+        final Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
         final FirebaseUser currentUser = ((MainActivity)getActivity()).user;
@@ -256,6 +256,7 @@ public class NewtrapFragment extends Fragment {
                                                 Log.d(TAG, "DocumentSnapshot successfully written!");
                                                 dialog.dismiss();
                                                 Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                                //buttonSubmit.startAnimation(((MainActivity)getActivity()).scaleAnimation);
                                                 editTextName.setText("");
                                                 editTextAddress.setText("");
                                                 editTextDate.setText("");
@@ -296,6 +297,7 @@ public class NewtrapFragment extends Fragment {
                                                 Log.d(TAG, "DocumentSnapshot successfully written!");
                                                 dialog.dismiss();
                                                 Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                                //buttonSubmit.startAnimation(((MainActivity)getActivity()).scaleAnimation);
                                                 editTextName.setText("");
                                                 editTextAddress.setText("");
                                                 editTextDate.setText("");
