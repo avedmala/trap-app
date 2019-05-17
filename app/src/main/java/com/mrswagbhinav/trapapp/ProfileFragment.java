@@ -96,6 +96,7 @@ public class ProfileFragment extends Fragment {
     String TAG = "ProfileFragment";
     private Uri filePath;
     DocumentSnapshot documentSnapshot;
+    AlertDialog hostDialog;
 
     SwipeRefreshLayout swipeRefreshLayout;
     TextView textViewName;
@@ -124,7 +125,6 @@ public class ProfileFragment extends Fragment {
     ArrayList<String> yesNameArray = new ArrayList<>();
     ArrayList<String> noNameArray = new ArrayList<>();
     ArrayList<String> noReplyArray = new ArrayList<>();
-
 
     ArrayAdapter yesAdapter;
     ArrayAdapter noAdapter;
@@ -285,8 +285,8 @@ public class ProfileFragment extends Fragment {
                     createFeedDialog(position).show();
                 }
                 else if(tabLayout.getSelectedTabPosition() == 1) {   //host
-                    createHostDialog(position).show();
-                }
+                    hostDialog = createHostDialog(position);
+                    hostDialog.show();                }
             }
         });
 
@@ -935,6 +935,9 @@ public class ProfileFragment extends Fragment {
                             db.collection("traps").document(hostArray.get(trapPos).getId()).update("invites", FieldValue.arrayRemove(noReplyList.get(userPos)));
                         }
                         dialog.dismiss();
+                        hostDialog.dismiss();
+                        hostDialog = createHostDialog(trapPos);
+                        hostDialog.show();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {

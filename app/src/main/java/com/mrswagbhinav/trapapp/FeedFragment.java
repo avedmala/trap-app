@@ -87,6 +87,7 @@ public class FeedFragment extends Fragment {
     SwipeRefreshLayout swipeRefreshLayout;
     ProgressDialog progressDialog;
     VerticalSpaceItemDecoration itemDecoration = new VerticalSpaceItemDecoration(10);
+    AlertDialog hostDialog;
 
     final String API_KEY = "AIzaSyCd0lSfjSIUAZpiiNgGLyTiwpDnfJGCwVg";
     private static final String TAG = "FeedFragment";
@@ -101,7 +102,6 @@ public class FeedFragment extends Fragment {
     ArrayList<String> yesNameArray = new ArrayList<>();
     ArrayList<String> noNameArray = new ArrayList<>();
     ArrayList<String> noReplyArray = new ArrayList<>();
-
 
     ArrayAdapter yesAdapter;
     ArrayAdapter noAdapter;
@@ -161,7 +161,8 @@ public class FeedFragment extends Fragment {
                 new RecyclerItemClickListener(getActivity(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
                         if(trapsList.get(position).getHost().equals(user.getUid())) {
-                            createHostDialog(position).show();
+                            hostDialog = createHostDialog(position);
+                            hostDialog.show();
                         }
                         else {
                             createFeedDialog(position).show();
@@ -297,6 +298,7 @@ public class FeedFragment extends Fragment {
                                             }
                                         }
                                     });
+
 
                             yesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, yesNameArray);
                             noAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, noNameArray);
@@ -564,7 +566,9 @@ public class FeedFragment extends Fragment {
                             db.collection("traps").document(trapsList.get(trapPos).getId()).update("invites", FieldValue.arrayRemove(noReplyList.get(userPos)));
                         }
                         dialog.dismiss();
-                    }
+                        hostDialog.dismiss();
+                        hostDialog = createHostDialog(trapPos);
+                        hostDialog.show();                    }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
