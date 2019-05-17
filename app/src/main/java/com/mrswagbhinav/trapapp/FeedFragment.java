@@ -80,7 +80,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class FeedFragment extends Fragment {
+public class FeedFragment extends Fragment implements OnMapReadyCallback{
 
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
@@ -630,6 +630,7 @@ public class FeedFragment extends Fragment {
                         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                     }
                 });
+        ((MainActivity)getActivity()).mapFragment.getMapAsync(FeedFragment.this);
     }
 
     private void sortDistance(ArrayList<Trap> traps) {
@@ -909,4 +910,77 @@ public class FeedFragment extends Fragment {
             return distance;
         }
     }
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        googleMap.clear();
+        db.collection("traps")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        ArrayList<Trap> latLngArrayList = new ArrayList<>();
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                if(((Timestamp) document.get("time")).compareTo(Timestamp.now()) > 0) {     //check if the trap has already happened
+                                    if(((ArrayList) document.get("invites")).contains(user.getUid()) || document.get("host").equals(user.getUid())) {     //check if user is invited or hosting
+                                        latLngArrayList.add(0, new Trap((String) document.get("title"), (String) document.get("host"), (String) document.get("location_name"), (String) document.get("location_address"), (Timestamp) document.get("time"), (GeoPoint) document.get("geopoint"), document.getId()));
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+
+                        for(Trap trap : latLngArrayList) {
+                            LatLng latLng = new LatLng(trap.getLat(), trap.getLng());
+                            googleMap.addMarker(new MarkerOptions()
+                                    .position(latLng)
+                                    .title(trap.getTitle())
+                                    .snippet(trap.getLocationName())
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                            );
+                        }
+
+                    }
+                });
+        try {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude)));
+            googleMap.setMinZoomPreference(8);
+            googleMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(((MainActivity)getActivity()).latitude, ((MainActivity)getActivity()).longitude))
+                    .title("Current Position")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "LAT/LNG is NULL");
+        }
+        googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getActivity(), R.raw.map_style));
+
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+//        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+//        googleMap.getUiSettings().setTiltGesturesEnabled(true);
+
+        googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                googleMap.setMinZoomPreference(1);
+            }
+        });
+
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                googleMap.setMinZoomPreference(16);
+                //Toast.makeText(MainActivity.this, marker.getSnippet(), Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+    }
+
+
 }

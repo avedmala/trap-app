@@ -86,6 +86,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     FloatingActionButton buttonMap;
     BottomNavigationView bottomNav;
 
+    CustomViewPager viewPager;
+    ViewPagerAdapter adapter;
+
     Double longitude;
     Double latitude;
 
@@ -213,8 +216,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        final CustomViewPager viewPager = findViewById(R.id.fragment_container);
-        final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        viewPager = findViewById(R.id.fragment_container);
+        adapter = new ViewPagerAdapter(getSupportFragmentManager());
+
         adapter.addFragment(new FeedFragment(), "Feed");
         adapter.addFragment(new NewtrapFragment(), "Newtrap");
         adapter.addFragment(new ProfileFragment(), "Profile");
@@ -364,6 +368,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         void addFragment(Fragment fragment, String title) {
             mFragmentList.add(fragment);
             mFragmentTitleList.add(title);
+        }
+
+        void removeLastFragment() {
+            mFragmentList.remove(mFragmentList.size()-1);
+            mFragmentTitleList.remove(mFragmentTitleList.size()-1);
         }
 
         @Override
