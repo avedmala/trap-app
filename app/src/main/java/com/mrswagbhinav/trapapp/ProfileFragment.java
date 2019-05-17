@@ -96,7 +96,6 @@ public class ProfileFragment extends Fragment {
     String TAG = "ProfileFragment";
     private Uri filePath;
     DocumentSnapshot documentSnapshot;
-    ProgressDialog dialog;
 
     SwipeRefreshLayout swipeRefreshLayout;
     TextView textViewName;
@@ -149,8 +148,6 @@ public class ProfileFragment extends Fragment {
         imageViewProfile = fragmentView.findViewById(R.id.id_imageViewProfile);
         listViewProfile = fragmentView.findViewById(R.id.id_listViewProfile);
         tabLayout = fragmentView.findViewById(R.id.id_profileTabs);
-        dialog = new ProgressDialog(getContext());
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         user = ((MainActivity)getActivity()).user;
         db = ((MainActivity)getActivity()).db;
@@ -177,7 +174,6 @@ public class ProfileFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                dialog.show();
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -372,7 +368,6 @@ public class ProfileFragment extends Fragment {
             swipeRefreshLayout.setRefreshing(false);
         }
 
-        dialog.dismiss();
     }
 
     public AlertDialog createSettingsDialog() {
@@ -768,7 +763,9 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Date trapDate = hostArray.get(position).getTimestamp().toDate();
-                new DatePickerDialog(getActivity(), date, trapDate.getYear() + 1900, trapDate.getMonth(), trapDate.getDate()).show();
+                DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), date, trapDate.getYear() + 1900, trapDate.getMonth(), trapDate.getDate());
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+                datePickerDialog.show();
             }
         });
         editTextTime.setOnClickListener(new View.OnClickListener() {
@@ -792,7 +789,7 @@ public class ProfileFragment extends Fragment {
                             time += selectedMinute;
                         editTextTime.setText(time);
                     }
-                }, hour, minute, false);
+                }, hour, minute, true);
                 mTimePicker.setTitle("Select Time");
                 mTimePicker.show();
             }

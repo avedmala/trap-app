@@ -90,7 +90,7 @@ public class NewtrapFragment extends Fragment {
         final EditText editTextName = fragmentView.findViewById(R.id.id_editTextName);
         final AutoCompleteTextView editTextAddress = fragmentView.findViewById(R.id.id_editTextAddress);
         final ImageView imageViewInvite = fragmentView.findViewById(R.id.id_imageViewInvite);
-        Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
+        final Switch switchLocation = fragmentView.findViewById(R.id.id_switchLocation);
         Button buttonSubmit = fragmentView.findViewById(R.id.id_buttonSubmit);
 
         final FirebaseFirestore db = ((MainActivity)getActivity()).db;
@@ -114,7 +114,9 @@ public class NewtrapFragment extends Fragment {
         editTextDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DatePickerDialog(getActivity(), date, myCalendar.get(Calendar.YEAR), myCalendar.get(Calendar.MONTH), myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), date, myCalendar.get(Calendar.YEAR), myCalendar.get(Calendar.MONTH), myCalendar.get(Calendar.DAY_OF_MONTH));
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+                datePickerDialog.show();
             }
         });
         editTextTime.setOnClickListener(new View.OnClickListener() {
@@ -138,7 +140,7 @@ public class NewtrapFragment extends Fragment {
                             time += selectedMinute;
                         editTextTime.setText(time);
                     }
-                }, hour, minute, false);
+                }, hour, minute, true);
                 mTimePicker.setTitle("Select Time");
                 mTimePicker.show();
             }
@@ -151,7 +153,7 @@ public class NewtrapFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s.length() % 4 == 0) {       //doesnt check all the time to keep performance nice
+                if(s.length() % 4 == 0 && !currentLoc[0]) {       //doesnt check all the time to keep performance nice
                     String URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" + s + "&inputtype=textquery&fields=name&key=" + API_KEY;
                     URL = URL.replace(" ", "%20");
 
@@ -254,6 +256,15 @@ public class NewtrapFragment extends Fragment {
                                                 Log.d(TAG, "DocumentSnapshot successfully written!");
                                                 dialog.dismiss();
                                                 Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                                editTextName.setText("");
+                                                editTextAddress.setText("");
+                                                editTextDate.setText("");
+                                                editTextTime.setText("");
+                                                arrayListInvite = new ArrayList<>();
+                                                switchLocation.setChecked(false);
+                                                userNameArray = new ArrayList<>();
+                                                userIdArray = new ArrayList<>();
+                                                checkedItems = null;
                                             }
                                         })
                                         .addOnFailureListener(new OnFailureListener() {
@@ -285,6 +296,15 @@ public class NewtrapFragment extends Fragment {
                                                 Log.d(TAG, "DocumentSnapshot successfully written!");
                                                 dialog.dismiss();
                                                 Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
+                                                editTextName.setText("");
+                                                editTextAddress.setText("");
+                                                editTextDate.setText("");
+                                                editTextTime.setText("");
+                                                arrayListInvite = new ArrayList<>();
+                                                switchLocation.setChecked(false);
+                                                userNameArray = new ArrayList<>();
+                                                userIdArray = new ArrayList<>();
+                                                checkedItems = null;
                                             }
                                         })
                                         .addOnFailureListener(new OnFailureListener() {

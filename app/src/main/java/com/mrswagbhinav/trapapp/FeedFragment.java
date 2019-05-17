@@ -397,7 +397,9 @@ public class FeedFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Date trapDate = trapsList.get(position).getTimestamp().toDate();
-                new DatePickerDialog(getActivity(), date, trapDate.getYear() + 1900, trapDate.getMonth(), trapDate.getDate()).show();
+                DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), date, trapDate.getYear() + 1900, trapDate.getMonth(), trapDate.getDate());
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+                datePickerDialog.show();
             }
         });
         editTextTime.setOnClickListener(new View.OnClickListener() {
@@ -421,7 +423,7 @@ public class FeedFragment extends Fragment {
                             time += selectedMinute;
                         editTextTime.setText(time);
                     }
-                }, hour, minute, false);
+                }, hour, minute, true);
                 mTimePicker.setTitle("Select Time");
                 mTimePicker.show();
             }
