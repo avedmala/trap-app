@@ -242,11 +242,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(map) {
                     viewPager.setCurrentItem(0, false);
                     buttonMap.setImageResource(R.drawable.ic_format_list_bulleted_black_24dp);
+                    buttonFilterFeed.setVisibility(View.VISIBLE);
                     map = false;
                 }
                 else {
                     viewPager.setCurrentItem(3, false);
                     buttonMap.setImageResource(R.drawable.ic_map_black_24dp);
+                    buttonFilterFeed.setVisibility(View.INVISIBLE);
                     map = true;
                 }
             }

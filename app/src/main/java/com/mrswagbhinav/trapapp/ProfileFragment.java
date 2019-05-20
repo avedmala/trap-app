@@ -393,7 +393,7 @@ public class ProfileFragment extends Fragment {
             String theme = obj.getString("theme");
             if(theme.equals("DarkTheme")) {
                 switchTheme.setChecked(true);
-            } else {
+            } else if (theme.equals("LightTheme")) {
                 switchTheme.setChecked(false);
             }
             OutputStreamWriter writer = new OutputStreamWriter(getContext().openFileOutput("info.json", MODE_PRIVATE));
