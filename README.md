@@ -2,7 +2,7 @@
 
 An Android application for creating hangouts.
 
-![](https://i.imgflip.com/40xgke.gif)
+[gif demo](https://i.imgflip.com/40xgke.gif)
 
 # What I Learned
 
